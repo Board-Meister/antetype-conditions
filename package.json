@@ -1,7 +1,7 @@
 {
-  "name": "@boardmeister/module-skeleton",
+  "name": "@boardmeister/antetype-conditions",
   "version": "0.0.1",
-  "description": "Example module, to be reused when creating new common modules",
+  "description": "Module for handling fillable inputs and actions based on their values ",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,12 +10,12 @@
   ],
   "scripts": {
     "typescript": "./node_modules/.bin/dts-bundle-generator --no-check --export-referenced-types false --project tsconfig.json -o dist/index.d.ts src/index.tsx",
-    "link": "npm link @boardmeister/minstrel @boardmeister/herald @boardmeister/marshal",
+    "link": "npm link @boardmeister/antetype-core @boardmeister/minstrel @boardmeister/herald @boardmeister/marshal",
     "build": "node esbuild.config.mjs && npm run typescript"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Board-Meister/module-skeleton.git"
+    "url": "git@github.com:Board-Meister/antetype-conditions.git"
   },
   "keywords": [
     "module",
@@ -25,11 +25,11 @@
   "author": "",
   "license": "GPL-2.0-only",
   "bugs": {
-    "url": "https://github.com/Board-Meister/module-skeleton/issues"
+    "url": "https://github.com/Board-Meister/antetype-conditions/issues"
   },
   "dependencies": {
   },
-  "homepage": "https://github.com/Board-Meister/module-skeleton#readme",
+  "homepage": "https://github.com/Board-Meister/antetype-conditions#readme",
   "devDependencies": {
     "glob": "^10.4.1",
     "@eslint/js": "^9.9.0",

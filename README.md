@@ -1,2 +1,2 @@
-# module-skeleton
-Example module, to be reused when creating new common modules
+# antetype-conditions
+Module for handling fillable inputs and actions based on their values 

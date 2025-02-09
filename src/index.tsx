@@ -1,18 +1,20 @@
-import type { IInjectable, Module } from "@boardmeister/marshal"
+import type { IInjectable } from "@boardmeister/marshal"
+import type { Module, ModulesEvent, Modules } from "@boardmeister/antetype-core"
+import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import type { Minstrel } from "@boardmeister/minstrel"
 import type { Herald, ISubscriber, Subscriptions } from "@boardmeister/herald"
-import MyModule, { IMyModule } from "@src/myModule";
+import ConditionsModule, { IConditions } from "@src/module";
 
-interface IInjected extends Record<string, object> {
+export interface IInjected extends Record<string, object> {
   minstrel: Minstrel;
   herald: Herald;
 }
 
-export class Skeleton {
+export class Conditions implements Module {
   #injected?: IInjected;
-  #module: typeof MyModule|null = null;
+  #module: typeof ConditionsModule|null = null;
   // @ts-expect-error TS6133: '#instance' is declared but its value is never read.
-  #instance: IMyModule|null = null;
+  #instance: IConditions|null = null;
 
   static inject: Record<string, string> = {
     minstrel: 'boardmeister/minstrel',
@@ -25,17 +27,25 @@ export class Skeleton {
   /**
    * Example of lazy loading the module
    */
-  async register(event: CustomEvent<{ modules: Record<string, unknown> }>): Promise<void> {
+  async register(event: CustomEvent<ModulesEvent>): Promise<void> {
+    const { modules, canvas } = event.detail;
     if (!this.#module) {
-      const module = this.#injected!.minstrel.getResourceUrl(this as Module, 'myModule.js');
-      this.#module = ((await import(module)) as { default: typeof MyModule }).default;
+      const module = this.#injected!.minstrel.getResourceUrl(this, 'module.js');
+      this.#module = ((await import(module)) as { default: typeof ConditionsModule }).default;
     }
-    this.#instance = event.detail.modules.myModule = this.#module();
+    console.log('register??')
+    this.#instance = modules.conditions = this.#module({
+      canvas,
+      modules: modules as Modules,
+      injected: this.#injected!
+    });
   }
 
   static subscriptions: Subscriptions = {
-    'example.module.register': 'register',
+    [CoreEvent.MODULES]: 'register',
   }
 }
-const EnSkeleton: IInjectable&ISubscriber = Skeleton
+const EnSkeleton: IInjectable<IInjected>&ISubscriber = Conditions
 export default EnSkeleton;
+
+export * from '@src/module';

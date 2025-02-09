@@ -24,21 +24,25 @@ interface RegisterConfig {
 		src: string;
 	};
 }
-type Module = Record<string, unknown>;
+declare class CModule<T = any> {
+	constructor(...args: unknown[]);
+	inject?: (injections: T) => void;
+}
+type Module<T = any> = CModule<T> | Record<string, unknown>;
 interface IModuleImportObject {
-	default?: Module | React$1.FC | ((...args: unknown[]) => void);
+	default?: Module | ((...args: unknown[]) => void);
 }
 interface IModuleImport {
 	config: RegisterConfig;
 	module: IModuleImportObject | (() => Promise<Module>);
 }
-declare class _IInjectable {
+declare class _IInjectable<T = object> {
 	constructor(...args: unknown[]);
-	inject(injections: Record<string, object>): void;
+	inject(injections: T): void;
 	scope?(): Record<string, unknown>;
 	static inject: Record<string, string>;
 }
-type IInjectable = typeof _IInjectable;
+type IInjectable<T> = typeof _IInjectable<T>;
 declare class Marshal {
 	static version: string;
 	renderCount: number;
@@ -46,7 +50,7 @@ declare class Marshal {
 	loaded: Record<string, object>;
 	tagMap: Record<string, IModuleImport[]>;
 	scope: Record<string, unknown>;
-	instanceMap: WeakMap<Module, RegisterConfig>;
+	instanceMap: WeakMap<Module<any>, RegisterConfig>;
 	constructor();
 	addScope(name: string, value: unknown): void;
 	render(): void;
@@ -70,6 +74,114 @@ declare class Marshal {
 	retrieveModulePromise(config: RegisterConfig): Promise<IModuleImport>;
 	isObjectEmpty(obj: object): boolean;
 }
+declare type UnknownRecord = Record<symbol | string, unknown>;
+interface ModulesEvent {
+	modules: Record<string, Module$1>;
+	canvas: HTMLCanvasElement | null;
+}
+interface Module$1 {
+}
+interface Modules {
+	[key: string]: Module$1 | undefined;
+	core: ICore;
+}
+declare type XValue = number;
+declare type YValue = XValue;
+interface IStart {
+	x: XValue;
+	y: YValue;
+}
+interface ISize {
+	w: XValue;
+	h: YValue;
+}
+interface IArea {
+	size: ISize;
+	start: IStart;
+}
+interface IHierarchy {
+	parent: IParentDef | null;
+	position: number;
+}
+interface IBaseDef<T = never> {
+	[key: symbol | string]: unknown;
+	id?: string;
+	hierarchy?: IHierarchy;
+	start: IStart;
+	size: ISize;
+	type: string;
+	can?: {
+		move?: boolean;
+		scale?: boolean;
+		remove?: boolean;
+	};
+	area?: IArea;
+	data?: T;
+}
+interface IParentDef extends IBaseDef {
+	layout: Layout;
+}
+interface ISequence {
+	current: number;
+	increment: number;
+}
+interface IDocumentDef extends IParentDef {
+	type: "document";
+	sequence: ISequence;
+	base: Layout;
+	start: {
+		x: 0;
+		y: 0;
+	};
+	size: {
+		w: 0;
+		h: 0;
+	};
+}
+interface IFont {
+	url: string;
+	name: string;
+}
+interface ICore extends Module$1 {
+	meta: {
+		document: IDocumentDef;
+	};
+	clone: {
+		definitions: (data: IBaseDef) => Promise<IBaseDef>;
+		getOriginal: <T extends UnknownRecord = UnknownRecord>(object: T) => T;
+		getClone: <T extends UnknownRecord = UnknownRecord>(object: T) => T;
+	};
+	manage: {
+		markAsLayer: (layer: IBaseDef) => IBaseDef;
+		add: (def: IBaseDef, parent?: IParentDef | null, position?: number | null) => void;
+		addVolatile: (def: IBaseDef, parent?: IParentDef | null, position?: number | null) => void;
+		move: (original: IBaseDef, newStart: IStart) => Promise<void>;
+		resize: (original: IBaseDef, newSize: ISize) => Promise<void>;
+		remove: (def: IBaseDef) => void;
+		removeVolatile: (def: IBaseDef) => void;
+		calcAndUpdateLayer: (original: IBaseDef) => Promise<void>;
+	};
+	view: {
+		calc: (element: IBaseDef, parent?: IParentDef, position?: number) => Promise<IBaseDef | null>;
+		draw: (element: IBaseDef) => void;
+		redraw: (layout?: Layout) => void;
+		recalculate: (parent?: IParentDef, layout?: Layout) => Promise<Layout>;
+		redrawDebounce: (layout: Layout) => void;
+	};
+	policies: {
+		isLayer: (layer: Record<symbol, unknown>) => boolean;
+		isClone: (layer: Record<symbol, unknown>) => boolean;
+	};
+	font: {
+		load: (font: IFont) => Promise<void>;
+	};
+	setting: {
+		set: (name: string, value: unknown) => void;
+		get: <T = unknown>(name: string) => T | null;
+		has: (name: string) => boolean;
+	};
+}
+type Layout = (IBaseDef | IParentDef)[];
 declare class _ISubscriber {
 	static subscriptions: Subscriptions;
 }
@@ -135,26 +247,100 @@ declare class Minstrel {
 	component<T>(module: Module, suffix: string, scope?: Record<string, any>): React$1.FC<T>;
 	asset(module: Module, suffix: string): string;
 }
-interface IInjected extends Record<string, object> {
+export interface IParams {
+	canvas: HTMLCanvasElement | null;
+	modules: Modules;
+	injected: IInjected;
+}
+declare enum Event$1 {
+	REGISTER_INPUT = "antetype.conditions.input.register",
+	REGISTER_METHOD = "antetype.conditions.method.register"
+}
+export interface IInputHandler<T = any> extends Record<string, unknown> {
+	type: string;
+	name: string;
+	get: () => T;
+	reset: () => void;
+	set: (value: T) => void;
+}
+export interface ITitleInputHandler extends IInputHandler<string | null> {
+	placeholder?: string;
+	value: string | null;
+}
+export interface ISelectOption {
+	label: string;
+	value: string;
+}
+export interface ISelectInputHandler extends IInputHandler<string | null> {
+	value: string | null;
+	default?: string;
+	options: ISelectOption[];
+}
+export interface IImageInputHandler extends IInputHandler<string | null> {
+	value: string | null;
+}
+export interface IInput<G extends IInputHandler = IInputHandler> {
+	type: string;
+	name: string;
+	generate: (layer: IBaseDef) => G;
+	description?: string;
+	icon?: string;
+}
+export interface IConditionAction {
+}
+interface IConditionInstruction {
+	text: string;
+}
+export interface IRule {
+	instruction: IConditionInstruction;
+	actions: IConditionAction[];
+}
+export interface IConditionAwareDef extends IBaseDef {
+	conditions?: {
+		inputs?: IInputHandler[];
+		rules?: IRule[];
+	};
+}
+export interface IMethodArgument {
+	type: string;
+	value?: unknown;
+}
+export interface IMethod<T extends unknown[] = unknown[], P = unknown> {
+	name: string;
+	arguments: IMethodArgument[];
+	resolve: (...args: T) => P;
+}
+export interface IConditions {
+	retrieveInputs: () => Promise<Record<string, IInput>>;
+	retrieveMethods: () => Promise<Record<string, IMethod>>;
+}
+export interface IRegisterInputEvent {
+	inputs: Record<string, IInput>;
+}
+export type RegisterInputEvent = CustomEvent<IRegisterInputEvent>;
+export interface IRegisterMethodEvent {
+	inputs: Record<string, IMethod>;
+}
+export type RegisterMethodEvent = CustomEvent<IRegisterMethodEvent>;
+export interface IInjected extends Record<string, object> {
 	minstrel: Minstrel;
 	herald: Herald;
 }
-export declare class Skeleton {
+export declare class Conditions implements Module$1 {
 	#private;
 	static inject: Record<string, string>;
 	inject(injections: IInjected): void;
 	/**
 	 * Example of lazy loading the module
 	 */
-	register(event: CustomEvent<{
-		modules: Record<string, unknown>;
-	}>): Promise<void>;
+	register(event: CustomEvent<ModulesEvent>): Promise<void>;
 	static subscriptions: Subscriptions;
 }
-declare const EnSkeleton: IInjectable & ISubscriber;
+declare const EnSkeleton: IInjectable<IInjected> & ISubscriber;
 
 export {
 	EnSkeleton as default,
+	Event$1 as Event,
 };
 
 export {};
