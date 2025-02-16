@@ -33,7 +33,6 @@ export class Conditions implements Module {
       const module = this.#injected!.minstrel.getResourceUrl(this, 'module.js');
       this.#module = ((await import(module)) as { default: typeof ConditionsModule }).default;
     }
-    console.log('register??')
     this.#instance = modules.conditions = this.#module({
       canvas,
       modules: modules as Modules,

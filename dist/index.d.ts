@@ -79,11 +79,14 @@ interface ModulesEvent {
 	modules: Record<string, Module$1>;
 	canvas: HTMLCanvasElement | null;
 }
-interface Module$1 {
-}
+declare type Module$1 = object;
 interface Modules {
 	[key: string]: Module$1 | undefined;
 	core: ICore;
+}
+interface CalcEvent {
+	element: IBaseDef | null;
+	sessionId: symbol | null;
 }
 declare type XValue = number;
 declare type YValue = XValue;
@@ -121,13 +124,8 @@ interface IBaseDef<T = never> {
 interface IParentDef extends IBaseDef {
 	layout: Layout;
 }
-interface ISequence {
-	current: number;
-	increment: number;
-}
 interface IDocumentDef extends IParentDef {
 	type: "document";
-	sequence: ISequence;
 	base: Layout;
 	start: {
 		x: 0;
@@ -145,6 +143,7 @@ interface IFont {
 interface ICore extends Module$1 {
 	meta: {
 		document: IDocumentDef;
+		generateId: () => string;
 	};
 	clone: {
 		definitions: (data: IBaseDef) => Promise<IBaseDef>;
@@ -162,11 +161,11 @@ interface ICore extends Module$1 {
 		calcAndUpdateLayer: (original: IBaseDef) => Promise<void>;
 	};
 	view: {
-		calc: (element: IBaseDef, parent?: IParentDef, position?: number) => Promise<IBaseDef | null>;
+		calc: (element: IBaseDef, parent?: IParentDef, position?: number, currentSession?: symbol | null) => Promise<IBaseDef | null>;
 		draw: (element: IBaseDef) => void;
 		redraw: (layout?: Layout) => void;
-		recalculate: (parent?: IParentDef, layout?: Layout) => Promise<Layout>;
-		redrawDebounce: (layout: Layout) => void;
+		recalculate: (parent?: IParentDef, layout?: Layout, currentSession?: symbol | null) => Promise<Layout>;
+		redrawDebounce: (layout?: Layout) => void;
 	};
 	policies: {
 		isLayer: (layer: Record<symbol, unknown>) => boolean;
@@ -247,38 +246,40 @@ declare class Minstrel {
 	component<T>(module: Module, suffix: string, scope?: Record<string, any>): React$1.FC<T>;
 	asset(module: Module, suffix: string): string;
 }
-export interface IParams {
-	canvas: HTMLCanvasElement | null;
-	modules: Modules;
-	injected: IInjected;
-}
+export declare const inputLayerSymbol: unique symbol;
+export declare const actionLayerSymbol: unique symbol;
+export declare const changeActionSymbol: unique symbol;
 declare enum Event$1 {
 	REGISTER_INPUT = "antetype.conditions.input.register",
 	REGISTER_METHOD = "antetype.conditions.method.register"
 }
-export interface IInputHandler<T = any> extends Record<string, unknown> {
+export interface IInputHandler<T = any> extends Record<string | symbol, unknown> {
+	id?: string;
+	[inputLayerSymbol]?: IConditionAwareDef;
 	type: string;
 	name: string;
-	get: () => T;
-	reset: () => void;
-	set: (value: T) => void;
+	value: T;
 }
 export interface ITitleInputHandler extends IInputHandler<string | null> {
 	placeholder?: string;
-	value: string | null;
 }
 export interface ISelectOption {
 	label: string;
 	value: string;
+	checked: boolean | null;
+}
+export interface IMultiselectOption {
+	label: string;
+	value: string;
+	checked: boolean | null;
 }
 export interface ISelectInputHandler extends IInputHandler<string | null> {
-	value: string | null;
-	default?: string;
 	options: ISelectOption[];
 }
-export interface IImageInputHandler extends IInputHandler<string | null> {
-	value: string | null;
+export interface IMultiselectInputHandler extends IInputHandler<string[]> {
+	options: IMultiselectOption[];
 }
+export type IImageInputHandler = IInputHandler<string | null>;
 export interface IInput<G extends IInputHandler = IInputHandler> {
 	type: string;
 	name: string;
@@ -286,42 +287,77 @@ export interface IInput<G extends IInputHandler = IInputHandler> {
 	description?: string;
 	icon?: string;
 }
-export interface IConditionAction {
-}
 interface IConditionInstruction {
 	text: string;
 }
-export interface IRule {
-	instruction: IConditionInstruction;
-	actions: IConditionAction[];
+export interface IChange {
+	[changeActionSymbol]: IAction;
+	type: string;
+	arguments: IMethodArgument[];
+}
+export interface IAction {
+	[actionLayerSymbol]: IConditionAwareDef;
+	rule: IConditionInstruction;
+	changes: IChange[];
 }
 export interface IConditionAwareDef extends IBaseDef {
 	conditions?: {
 		inputs?: IInputHandler[];
-		rules?: IRule[];
+		actions?: IAction[];
 	};
 }
-export interface IMethodArgument {
+export interface IMethodArgument extends Record<string, any> {
 	type: string;
-	value?: unknown;
+	value?: any;
+	inputId?: string;
 }
-export interface IMethod<T extends unknown[] = unknown[], P = unknown> {
+export interface IResolveArgument {
+	event: CustomEvent<CalcEvent>;
+	layer: IConditionAwareDef;
+}
+export interface IMethod<T extends any[] = any[], P = unknown> {
 	name: string;
-	arguments: IMethodArgument[];
-	resolve: (...args: T) => P;
+	type: string;
+	arguments?: IMethodArgument[];
+	resolve: (argument: IResolveArgument, ...args: T) => P;
 }
-export interface IConditions {
-	retrieveInputs: () => Promise<Record<string, IInput>>;
-	retrieveMethods: () => Promise<Record<string, IMethod>>;
-}
+export type SetImageMethod = IMethod<(string | null)[]>;
+export type SetTextMethod = IMethod<(string | null)[]>;
+export type SetPropertyMethod = IMethod<(string | null)[]>;
 export interface IRegisterInputEvent {
 	inputs: Record<string, IInput>;
 }
 export type RegisterInputEvent = CustomEvent<IRegisterInputEvent>;
 export interface IRegisterMethodEvent {
-	inputs: Record<string, IMethod>;
+	methods: Record<string, IMethod>;
 }
 export type RegisterMethodEvent = CustomEvent<IRegisterMethodEvent>;
+interface ICrud {
+	addInput: (layer: IConditionAwareDef, input: IInput) => IInputHandler;
+	removeInput: (handler: IInputHandler) => void;
+	getInputById: (id: string) => IInputHandler | null;
+	getInputByType: (type: string) => IInput | null;
+	getMethod: (type: string) => IMethod | null;
+	getInputs: () => IInputHandler[];
+	getInputLayer: (input: IInputHandler) => IConditionAwareDef | null;
+	addEmptyAction: (layer: IConditionAwareDef) => IAction;
+	removeAction: (action: IAction) => void;
+	addChange: (action: IAction, method: IMethod) => IChange;
+	removeChange: (change: IChange) => void;
+}
+interface IEventReturn {
+	retrieveInputs: () => Promise<Record<string, IInput>>;
+	retrieveMethods: () => Promise<Record<string, IMethod>>;
+}
+export interface IParams {
+	canvas: HTMLCanvasElement | null;
+	modules: Modules;
+	injected: IInjected;
+}
+export interface IConditions extends ICrud, IEventReturn {
+	getInputsMap: () => Record<string, IInput>;
+	getMethodsMap: () => Record<string, IMethod>;
+}
 export interface IInjected extends Record<string, object> {
 	minstrel: Minstrel;
 	herald: Herald;
