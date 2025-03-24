@@ -2,10 +2,10 @@
 var inputLayerSymbol = Symbol("Input Layer");
 var actionLayerSymbol = Symbol("Action Layer");
 var changeActionSymbol = Symbol("Change Action");
-var Event = /* @__PURE__ */ ((Event3) => {
-  Event3["REGISTER_INPUT"] = "antetype.conditions.input.register";
-  Event3["REGISTER_METHOD"] = "antetype.conditions.method.register";
-  return Event3;
+var Event = /* @__PURE__ */ ((Event2) => {
+  Event2["REGISTER_INPUT"] = "antetype.conditions.input.register";
+  Event2["REGISTER_METHOD"] = "antetype.conditions.method.register";
+  return Event2;
 })(Event || {});
 
 // src/segment/crud.tsx
@@ -16,12 +16,19 @@ function crud({
   modules
 }) {
   const getMethod = (type) => methodsMap[type] ?? null;
-  const removeChange = (change) => {
+  const removeChange = (action, change) => {
     const changes = change[changeActionSymbol]?.changes ?? [];
     for (let i = 0; i < changes.length; i++) {
       const possibleChange = changes[i];
       if (possibleChange === change) {
         changes.splice(i, 1);
+        break;
+      }
+    }
+    for (let i = 0; i < action.changes.length; i++) {
+      const possibleChange = action.changes[i];
+      if (possibleChange === change) {
+        action.changes.splice(i, 1);
         break;
       }
     }
@@ -35,8 +42,15 @@ function crud({
     action.changes.push(change);
     return change;
   };
-  const removeAction = (action) => {
-    const actions = action[actionLayerSymbol]?.conditions?.actions ?? [];
+  const removeAction = (actions, action) => {
+    const actionsGrouper = action[actionLayerSymbol]?.conditions?.actions ?? [];
+    for (let i = 0; i < actionsGrouper.length; i++) {
+      const possibleAction = actionsGrouper[i];
+      if (possibleAction === action) {
+        actionsGrouper.splice(i, 1);
+        break;
+      }
+    }
     for (let i = 0; i < actions.length; i++) {
       const possibleAction = actions[i];
       if (possibleAction === action) {
@@ -58,11 +72,14 @@ function crud({
     layer.conditions.actions.push(emptyAction);
     return emptyAction;
   };
-  const addInput = (layer, input) => {
-    const handler = input.generate(layer);
+  const registerInput = (layer, handler) => {
     handler.id = modules.core.meta.generateId();
     handler[inputLayerSymbol] = layer;
     inputsMap[handler.id] = handler;
+  };
+  const addInput = (layer, input) => {
+    const handler = input.generate(layer);
+    registerInput(layer, handler);
     layer.conditions ??= {};
     layer.conditions.inputs ??= [];
     layer.conditions.inputs.push(handler);
@@ -85,6 +102,45 @@ function crud({
   const getInputLayer = (input) => input[inputLayerSymbol] ?? null;
   const getInputs = () => Object.values(inputsMap);
   const getInputByType = (type) => inputsTypeMap[type] ?? null;
+  const registerNewInputs = (layer) => {
+    const inputs = layer.conditions?.inputs ?? [];
+    for (let i = 0; i < inputs.length; i++) {
+      let input = inputs[i];
+      if (input[inputLayerSymbol]) {
+        continue;
+      }
+      const template = getInputByType(input.type);
+      if (template) {
+        const regenerated = template.generate(layer);
+        for (const key in input) {
+          regenerated[key] = input[key];
+        }
+        inputs[i] = input = regenerated;
+      }
+      if (!input.id) {
+        input.id = modules.core.meta.generateId();
+      }
+      inputsMap[input.id] = input;
+      input[inputLayerSymbol] = layer;
+    }
+    for (const child of layer.layout ?? []) {
+      registerNewInputs(child);
+    }
+  };
+  const registerNewActions = (layer) => {
+    for (const action of layer.conditions?.actions ?? []) {
+      if (action[actionLayerSymbol]) {
+        continue;
+      }
+      action[actionLayerSymbol] = layer;
+      for (const change of action.changes) {
+        change[changeActionSymbol] = action;
+      }
+    }
+    for (const child of layer.layout ?? []) {
+      registerNewActions(child);
+    }
+  };
   return {
     addInput,
     removeInput,
@@ -96,24 +152,18 @@ function crud({
     removeAction,
     addChange,
     removeChange,
-    getMethod
+    getMethod,
+    registerInput,
+    registerNewInputs,
+    registerNewActions
   };
 }
 
 // ../antetype-core/dist/index.js
-var Event2 = /* @__PURE__ */ ((Event22) => {
-  Event22["INIT"] = "antetype.init";
-  Event22["CLOSE"] = "antetype.close";
-  Event22["DRAW"] = "antetype.draw";
-  Event22["CALC"] = "antetype.calc";
-  Event22["RECALC_FINISHED"] = "antetype.recalc.finished";
-  Event22["MODULES"] = "antetype.modules";
-  return Event22;
-})(Event2 || {});
+var s = ((t) => (t.INIT = "antetype.init", t.CLOSE = "antetype.close", t.DRAW = "antetype.draw", t.CALC = "antetype.calc", t.RECALC_FINISHED = "antetype.recalc.finished", t.MODULES = "antetype.modules", t.SETTINGS = "antetype.settings.definition", t))(s || {});
 
 // src/segment/events.tsx
 function events({
-  inputsMap,
   modules,
   injected: { herald },
   crud: crud2,
@@ -151,53 +201,15 @@ function events({
     return event.detail.methods;
   };
   const imageToLayer = {};
-  const registerNewInputs = (layer) => {
-    const inputs = layer.conditions?.inputs ?? [];
-    for (let i = 0; i < inputs.length; i++) {
-      let input = inputs[i];
-      if (input[inputLayerSymbol]) {
-        continue;
-      }
-      const template = crud2.getInputByType(input.type);
-      if (template) {
-        const regenerated = template.generate(layer);
-        for (const key in input) {
-          regenerated[key] = input[key];
-        }
-        inputs[i] = input = regenerated;
-      }
-      if (input.id) {
-        inputsMap[input.id] = input;
-      }
-      input[inputLayerSymbol] = layer;
-    }
-    for (const child of layer.layout ?? []) {
-      registerNewInputs(child);
-    }
-  };
-  const registerNewActions = (layer) => {
-    for (const action of layer.conditions?.actions ?? []) {
-      if (action[actionLayerSymbol]) {
-        continue;
-      }
-      action[actionLayerSymbol] = layer;
-      for (const change of action.changes) {
-        change[changeActionSymbol] = action;
-      }
-    }
-    for (const child of layer.layout ?? []) {
-      registerNewInputs(child);
-    }
-  };
   const unregister = herald.batch([
     {
-      event: Event2.CLOSE,
+      event: s.CLOSE,
       subscription: () => {
         unregister();
       }
     },
     {
-      event: Event2.INIT,
+      event: s.INIT,
       subscription: {
         method: async (e) => {
           await Promise.all([
@@ -206,8 +218,8 @@ function events({
           ]);
           const { base } = e.detail;
           for (const layer of base) {
-            registerNewInputs(layer);
-            registerNewActions(layer);
+            crud2.registerNewInputs(layer);
+            crud2.registerNewActions(layer);
           }
         },
         priority: -10
@@ -451,13 +463,13 @@ function setConditionHandler({
   };
   const unregister = herald.batch([
     {
-      event: Event2.CLOSE,
+      event: s.CLOSE,
       subscription: () => {
         unregister();
       }
     },
     {
-      event: Event2.CALC,
+      event: s.CALC,
       subscription: {
         method: (e) => {
           const element = e.detail.element;

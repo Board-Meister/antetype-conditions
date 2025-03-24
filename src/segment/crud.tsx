@@ -1,4 +1,4 @@
-import type { Modules } from "@boardmeister/antetype-core"
+import type { IParentDef, Modules } from "@boardmeister/antetype-core"
 import {
   actionLayerSymbol,
   changeActionSymbol,
@@ -20,9 +20,12 @@ export interface ICrud {
   getInputs: () => IInputHandler[];
   getInputLayer: (input: IInputHandler) => IConditionAwareDef|null;
   addEmptyAction: (layer: IConditionAwareDef) => IAction;
-  removeAction: (action: IAction) => void;
+  removeAction: (actions: IAction[], action: IAction) => void;
   addChange: (action: IAction, method: IMethod) => IChange;
-  removeChange: (change: IChange) => void;
+  removeChange: (action: IAction, change: IChange) => void;
+  registerInput: (layer: IConditionAwareDef, handler: IInputHandler) => void;
+  registerNewInputs: (layer: IConditionAwareDef) => void;
+  registerNewActions: (layer: IConditionAwareDef) => void
 }
 
 export interface ICrudProps {
@@ -43,12 +46,20 @@ export default function crud(
 
   const getMethod = (type: string): IMethod|null => methodsMap[type] ?? null;
 
-  const removeChange = (change: IChange): void => {
+  const removeChange = (action: IAction, change: IChange): void => {
     const changes = change[changeActionSymbol]?.changes ?? [];
     for(let i=0; i < changes.length; i++) {
       const possibleChange = changes[i];
       if (possibleChange === change) {
         changes.splice(i, 1);
+        break;
+      }
+    }
+
+    for (let i = 0; i < action.changes.length; i++) {
+      const possibleChange = action.changes[i];
+      if (possibleChange === change) {
+        action.changes.splice(i, 1);
         break;
       }
     }
@@ -65,8 +76,15 @@ export default function crud(
     return change;
   }
 
-  const removeAction = (action: IAction): void => {
-    const actions = action[actionLayerSymbol]?.conditions?.actions ?? [];
+  const removeAction = (actions: IAction[], action: IAction): void => {
+    const actionsGrouper = action[actionLayerSymbol]?.conditions?.actions ?? [];
+    for(let i=0; i < actionsGrouper.length; i++) {
+      const possibleAction = actionsGrouper[i];
+      if (possibleAction === action) {
+        actionsGrouper.splice(i, 1);
+        break;
+      }
+    }
     for(let i=0; i < actions.length; i++) {
       const possibleAction = actions[i];
       if (possibleAction === action) {
@@ -91,11 +109,15 @@ export default function crud(
     return emptyAction;
   }
 
-  const addInput = (layer: IConditionAwareDef, input: IInput): IInputHandler => {
-    const handler = input.generate(layer);
+  const registerInput = (layer: IConditionAwareDef, handler: IInputHandler): void => {
     handler.id = modules.core.meta.generateId();
     handler[inputLayerSymbol] = layer;
     inputsMap[handler.id] = handler;
+  }
+
+  const addInput = (layer: IConditionAwareDef, input: IInput): IInputHandler => {
+    const handler = input.generate(layer);
+    registerInput(layer, handler);
     layer.conditions ??= {};
     layer.conditions.inputs ??= [];
     layer.conditions.inputs.push(handler);
@@ -124,6 +146,52 @@ export default function crud(
 
   const getInputByType = (type: string): IInput|null => inputsTypeMap[type] ?? null;
 
+  const registerNewInputs = (layer: IConditionAwareDef): void => {
+    const inputs = layer.conditions?.inputs ?? [];
+    for(let i=0; i < inputs.length; i++) {
+      let input = inputs[i];
+      if (input[inputLayerSymbol]) {
+        continue;
+      }
+
+      const template = getInputByType(input.type);
+      if (template) {
+        const regenerated = template.generate(layer);
+        for (const key in input) {
+          regenerated[key] = input[key];
+        }
+        inputs[i] = input = regenerated;
+      }
+
+      if (!input.id) {
+        input.id = modules.core.meta.generateId();
+      }
+      inputsMap[input.id] = input;
+      input[inputLayerSymbol] = layer;
+    }
+
+    for (const child of (layer as IParentDef).layout ?? []) {
+      registerNewInputs(child);
+    }
+  }
+
+  const registerNewActions = (layer: IConditionAwareDef): void => {
+    for (const action of layer.conditions?.actions ?? []) {
+      if (action[actionLayerSymbol]) {
+        continue;
+      }
+
+      action[actionLayerSymbol] = layer;
+      for (const change of action.changes) {
+        change[changeActionSymbol] = action;
+      }
+    }
+
+    for (const child of (layer as IParentDef).layout ?? []) {
+      registerNewActions(child);
+    }
+  }
+
   return {
     addInput,
     removeInput,
@@ -136,5 +204,8 @@ export default function crud(
     addChange,
     removeChange,
     getMethod,
+    registerInput,
+    registerNewInputs,
+    registerNewActions,
   };
 }

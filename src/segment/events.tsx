@@ -1,15 +1,14 @@
-import type { Modules, IParentDef, InitEvent } from "@boardmeister/antetype-core"
+import type { Modules, InitEvent } from "@boardmeister/antetype-core"
 import type { ITextDef, IImageDef } from "@boardmeister/antetype-illustrator"
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import {
   Event, IConditionAwareDef,
   IImageInputHandler,
-  IInput, IInputHandler, inputLayerSymbol,
+  IInput, IInputHandler,
   ISelectInputHandler,
   ITitleInputHandler,
   RegisterInputEvent, RegisterMethodEvent, SetImageMethod, SetPropertyMethod, SetTextMethod,
-  actionLayerSymbol,
-  changeActionSymbol, IMultiselectInputHandler, IMethod,
+  IMultiselectInputHandler, IMethod,
 } from "@src/type.d";
 import { IInjected } from "@src/index";
 import { ICrud } from "@src/segment/crud";
@@ -30,7 +29,6 @@ export interface IEventReturn {
 
 export default function events(
   {
-    inputsMap,
     modules,
     injected: { herald },
     crud,
@@ -72,50 +70,7 @@ export default function events(
 
   const imageToLayer: Record<string, WeakMap<IConditionAwareDef, true>> = {};
 
-  const registerNewInputs = (layer: IConditionAwareDef): void => {
-    const inputs = layer.conditions?.inputs ?? [];
-    for(let i=0; i < inputs.length; i++) {
-      let input = inputs[i];
-      if (input[inputLayerSymbol]) {
-        continue;
-      }
 
-      const template = crud.getInputByType(input.type);
-      if (template) {
-        const regenerated = template.generate(layer);
-        for (const key in input) {
-          regenerated[key] = input[key];
-        }
-        inputs[i] = input = regenerated;
-      }
-
-      if (input.id) {
-        inputsMap[input.id] = input;
-      }
-      input[inputLayerSymbol] = layer;
-    }
-
-    for (const child of (layer as IParentDef).layout ?? []) {
-      registerNewInputs(child);
-    }
-  }
-
-  const registerNewActions = (layer: IConditionAwareDef): void => {
-    for (const action of layer.conditions?.actions ?? []) {
-      if (action[actionLayerSymbol]) {
-        continue;
-      }
-
-      action[actionLayerSymbol] = layer;
-      for (const change of action.changes) {
-        change[changeActionSymbol] = action;
-      }
-    }
-
-    for (const child of (layer as IParentDef).layout ?? []) {
-      registerNewInputs(child);
-    }
-  }
 
   const unregister = herald.batch([
     {
@@ -134,8 +89,8 @@ export default function events(
           ]);
           const { base } = e.detail;
           for (const layer of base) {
-            registerNewInputs(layer);
-            registerNewActions(layer);
+            crud.registerNewInputs(layer);
+            crud.registerNewActions(layer);
           }
         },
         priority: -10,
@@ -276,7 +231,6 @@ export default function events(
               })
             }
             newImg.src = image;
-
           }
         } as SetImageMethod;
 

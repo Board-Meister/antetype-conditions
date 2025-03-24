@@ -1,23 +1,15 @@
 // ../antetype-core/dist/index.js
-var Event = /* @__PURE__ */ ((Event22) => {
-  Event22["INIT"] = "antetype.init";
-  Event22["CLOSE"] = "antetype.close";
-  Event22["DRAW"] = "antetype.draw";
-  Event22["CALC"] = "antetype.calc";
-  Event22["RECALC_FINISHED"] = "antetype.recalc.finished";
-  Event22["MODULES"] = "antetype.modules";
-  return Event22;
-})(Event || {});
+var s = ((t) => (t.INIT = "antetype.init", t.CLOSE = "antetype.close", t.DRAW = "antetype.draw", t.CALC = "antetype.calc", t.RECALC_FINISHED = "antetype.recalc.finished", t.MODULES = "antetype.modules", t.SETTINGS = "antetype.settings.definition", t))(s || {});
 
 // src/type.d.tsx
 var inputLayerSymbol = Symbol("Input Layer");
 var actionLayerSymbol = Symbol("Action Layer");
 var changeActionSymbol = Symbol("Change Action");
-var Event2 = /* @__PURE__ */ ((Event3) => {
-  Event3["REGISTER_INPUT"] = "antetype.conditions.input.register";
-  Event3["REGISTER_METHOD"] = "antetype.conditions.method.register";
-  return Event3;
-})(Event2 || {});
+var Event = /* @__PURE__ */ ((Event2) => {
+  Event2["REGISTER_INPUT"] = "antetype.conditions.input.register";
+  Event2["REGISTER_METHOD"] = "antetype.conditions.method.register";
+  return Event2;
+})(Event || {});
 
 // src/index.tsx
 var Conditions = class {
@@ -48,14 +40,14 @@ var Conditions = class {
     });
   }
   static subscriptions = {
-    [Event.MODULES]: "register"
+    [s.MODULES]: "register"
   };
 };
 var EnSkeleton = Conditions;
 var src_default = EnSkeleton;
 export {
   Conditions,
-  Event2 as Event,
+  Event,
   actionLayerSymbol,
   changeActionSymbol,
   src_default as default,
