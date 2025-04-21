@@ -1,4 +1,4 @@
-// src/type.d.tsx
+// src/type.d.ts
 var inputLayerSymbol = Symbol("Input Layer");
 var actionLayerSymbol = Symbol("Action Layer");
 var changeActionSymbol = Symbol("Change Action");
@@ -8,7 +8,7 @@ var Event = /* @__PURE__ */ ((Event2) => {
   return Event2;
 })(Event || {});
 
-// src/segment/crud.tsx
+// src/segment/crud.ts
 function crud({
   inputsMap,
   inputsTypeMap,
@@ -18,17 +18,17 @@ function crud({
   const getMethod = (type) => methodsMap[type] ?? null;
   const removeChange = (action, change) => {
     const changes = change[changeActionSymbol]?.changes ?? [];
-    for (let i = 0; i < changes.length; i++) {
-      const possibleChange = changes[i];
+    for (let i2 = 0; i2 < changes.length; i2++) {
+      const possibleChange = changes[i2];
       if (possibleChange === change) {
-        changes.splice(i, 1);
+        changes.splice(i2, 1);
         break;
       }
     }
-    for (let i = 0; i < action.changes.length; i++) {
-      const possibleChange = action.changes[i];
+    for (let i2 = 0; i2 < action.changes.length; i2++) {
+      const possibleChange = action.changes[i2];
       if (possibleChange === change) {
-        action.changes.splice(i, 1);
+        action.changes.splice(i2, 1);
         break;
       }
     }
@@ -44,17 +44,17 @@ function crud({
   };
   const removeAction = (actions, action) => {
     const actionsGrouper = action[actionLayerSymbol]?.conditions?.actions ?? [];
-    for (let i = 0; i < actionsGrouper.length; i++) {
-      const possibleAction = actionsGrouper[i];
+    for (let i2 = 0; i2 < actionsGrouper.length; i2++) {
+      const possibleAction = actionsGrouper[i2];
       if (possibleAction === action) {
-        actionsGrouper.splice(i, 1);
+        actionsGrouper.splice(i2, 1);
         break;
       }
     }
-    for (let i = 0; i < actions.length; i++) {
-      const possibleAction = actions[i];
+    for (let i2 = 0; i2 < actions.length; i2++) {
+      const possibleAction = actions[i2];
       if (possibleAction === action) {
-        actions.splice(i, 1);
+        actions.splice(i2, 1);
         break;
       }
     }
@@ -87,10 +87,10 @@ function crud({
   };
   const removeInput = (handler) => {
     const inputs = handler[inputLayerSymbol]?.conditions?.inputs ?? [];
-    for (let i = 0; i < inputs.length; i++) {
-      const input = inputs[i];
+    for (let i2 = 0; i2 < inputs.length; i2++) {
+      const input = inputs[i2];
       if (input === handler) {
-        inputs.splice(i, 1);
+        inputs.splice(i2, 1);
         break;
       }
     }
@@ -104,8 +104,8 @@ function crud({
   const getInputByType = (type) => inputsTypeMap[type] ?? null;
   const registerNewInputs = (layer) => {
     const inputs = layer.conditions?.inputs ?? [];
-    for (let i = 0; i < inputs.length; i++) {
-      let input = inputs[i];
+    for (let i2 = 0; i2 < inputs.length; i2++) {
+      let input = inputs[i2];
       if (input[inputLayerSymbol]) {
         continue;
       }
@@ -115,7 +115,7 @@ function crud({
         for (const key in input) {
           regenerated[key] = input[key];
         }
-        inputs[i] = input = regenerated;
+        inputs[i2] = input = regenerated;
       }
       if (!input.id) {
         input.id = modules.core.meta.generateId();
@@ -160,12 +160,29 @@ function crud({
 }
 
 // ../antetype-core/dist/index.js
-var s = ((t) => (t.INIT = "antetype.init", t.CLOSE = "antetype.close", t.DRAW = "antetype.draw", t.CALC = "antetype.calc", t.RECALC_FINISHED = "antetype.recalc.finished", t.MODULES = "antetype.modules", t.SETTINGS = "antetype.settings.definition", t))(s || {});
+var o = { INIT: "antetype.init", CLOSE: "antetype.close", DRAW: "antetype.draw", CALC: "antetype.calc", RECALC_FINISHED: "antetype.recalc.finished", MODULES: "antetype.modules", SETTINGS: "antetype.settings.definition", TYPE_DEFINITION: "antetype.layer.type.definition" };
+var i = class {
+  #e;
+  #n = null;
+  static inject = { minstrel: "boardmeister/minstrel", herald: "boardmeister/herald" };
+  inject(e) {
+    this.#e = e;
+  }
+  async #t(e, n) {
+    let t = this.#e.minstrel.getResourceUrl(this, "core.js");
+    return this.#n = (await import(t)).default, this.#n({ canvas: n, modules: e, herald: this.#e.herald });
+  }
+  async register(e) {
+    let { modules: n, canvas: t } = e.detail;
+    n.core = await this.#t(n, t);
+  }
+  static subscriptions = { [o.MODULES]: "register" };
+};
 
-// src/segment/events.tsx
+// src/segment/events.ts
 function events({
   modules,
-  injected: { herald },
+  herald,
   crud: crud2,
   inputsTypeMap,
   methodsMap
@@ -203,13 +220,13 @@ function events({
   const imageToLayer = {};
   const unregister = herald.batch([
     {
-      event: s.CLOSE,
+      event: o.CLOSE,
       subscription: () => {
         unregister();
       }
     },
     {
-      event: s.INIT,
+      event: o.INIT,
       subscription: {
         method: async (e) => {
           await Promise.all([
@@ -331,6 +348,7 @@ function events({
           type: "set-image",
           arguments: [
             {
+              name: "image",
               type: "image"
             }
           ],
@@ -359,6 +377,7 @@ function events({
           type: "set-text",
           arguments: [
             {
+              name: "text",
               type: "text",
               placeholder: "New text"
             }
@@ -375,10 +394,12 @@ function events({
           type: "set-property",
           arguments: [
             {
+              name: "path",
               type: "text",
               placeholder: "Path to property (path.to.property)"
             },
             {
+              name: "value",
               type: "text",
               placeholder: "New value"
             }
@@ -413,9 +434,9 @@ function events({
   };
 }
 
-// src/segment/conditions.tsx
+// src/segment/conditions.ts
 function setConditionHandler({
-  injected: { herald },
+  herald,
   crud: crud2,
   enableTextConditions
 }) {
@@ -431,25 +452,21 @@ function setConditionHandler({
     }
     return values;
   };
-  const canActionResolve = (action, args) => {
+  const canActionResolve = (action, args = null) => {
+    args ??= generateActionArguments();
     const rule = action.rule.text.trim();
     if (!enableTextConditions || rule.length == 0) {
       return true;
     }
-    try {
-      if (!actionCache[rule]) {
-        actionCache[rule] = new Function(
-          ...Object.keys(args),
-          "return !!(" + rule + ")"
-        ).bind(
-          {}
-        );
-      }
-      return actionCache[rule](...Object.values(args));
-    } catch {
-      return false;
+    if (!actionCache[rule]) {
+      actionCache[rule] = new Function(
+        ...Object.keys(args),
+        "return !!(" + rule + ")"
+      ).bind(
+        {}
+      );
     }
-    return false;
+    return actionCache[rule](...Object.values(args));
   };
   const generateActionArguments = () => {
     const inputs = {};
@@ -463,13 +480,13 @@ function setConditionHandler({
   };
   const unregister = herald.batch([
     {
-      event: s.CLOSE,
+      event: o.CLOSE,
       subscription: () => {
         unregister();
       }
     },
     {
-      event: s.CALC,
+      event: o.CALC,
       subscription: {
         method: (e) => {
           const element = e.detail.element;
@@ -478,7 +495,11 @@ function setConditionHandler({
           }
           const args = generateActionArguments();
           for (const action of element.conditions.actions) {
-            if (!canActionResolve(action, args)) {
+            try {
+              if (!canActionResolve(action, args)) {
+                continue;
+              }
+            } catch {
               continue;
             }
             for (const change of action.changes) {
@@ -492,11 +513,16 @@ function setConditionHandler({
       }
     }
   ]);
+  return {
+    canActionResolve,
+    generateActionArguments,
+    resolveArguments
+  };
 }
 
-// src/module.tsx
+// src/module.ts
 function ConditionsModule({
-  injected,
+  herald,
   modules
 }) {
   const inputsMap = {};
@@ -516,13 +542,20 @@ function ConditionsModule({
       return false;
     }
   };
-  const eventsProps = events({ inputsMap, injected, modules, inputsTypeMap, methodsMap, crud: crudProps });
-  setConditionHandler({ enableTextConditions: detectCSPRestriction(), inputsMap, injected, modules, crud: crudProps });
+  const eventsProps = events({ inputsMap, herald, modules, inputsTypeMap, methodsMap, crud: crudProps });
+  const conditionProps = setConditionHandler({
+    enableTextConditions: detectCSPRestriction(),
+    inputsMap,
+    herald,
+    modules,
+    crud: crudProps
+  });
   return {
     getInputsMap: () => ({ ...inputsTypeMap }),
     getMethodsMap: () => ({ ...methodsMap }),
     ...eventsProps,
-    ...crudProps
+    ...crudProps,
+    ...conditionProps
   };
 }
 export {

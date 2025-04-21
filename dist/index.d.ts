@@ -84,6 +84,11 @@ interface Modules {
 	[key: string]: Module$1 | undefined;
 	core: ICore;
 }
+type ITypeDefinitionPrimitive = "boolean" | "string" | "number";
+type TypeDefinition = {
+	[key: string]: ITypeDefinitionPrimitive | TypeDefinition | TypeDefinition[];
+} | (ITypeDefinitionPrimitive)[] | TypeDefinition[];
+type ITypeDefinitionMap = Record<string, TypeDefinition>;
 interface CalcEvent {
 	element: IBaseDef | null;
 	sessionId: symbol | null;
@@ -188,6 +193,7 @@ interface ICore extends Module$1 {
 	meta: {
 		document: IDocumentDef;
 		generateId: () => string;
+		layerDefinitions: () => ITypeDefinitionMap;
 	};
 	clone: {
 		definitions: (data: IBaseDef) => Promise<IBaseDef>;
@@ -232,7 +238,7 @@ declare class _ISubscriber {
 }
 type ISubscriber = typeof _ISubscriber;
 type AmbiguousSubscription = string | Subscription | Subscription[] | EventHandler;
-type EventHandler = (event: CustomEvent) => Promise<void> | void;
+type EventHandler = (event: CustomEvent) => Promise<any> | any;
 type Subscriptions = Record<string, AmbiguousSubscription>;
 interface Subscription {
 	method: string | EventHandler;
@@ -251,9 +257,9 @@ interface IEventRegistration {
 	sort?: boolean;
 	symbol?: symbol | null;
 }
-interface IInjection extends Record<string, object> {
+interface IInjection extends Record<string, object | undefined> {
 	subscribers: ISubscriberObject[];
-	marshal: Marshal;
+	marshal?: Marshal;
 }
 declare class Herald {
 	#private;
@@ -292,14 +298,14 @@ declare class Minstrel {
 	component<T>(module: Module, suffix: string, scope?: Record<string, any>): React$1.FC<T>;
 	asset(module: Module, suffix: string): string;
 }
-export declare const inputLayerSymbol: unique symbol;
-export declare const actionLayerSymbol: unique symbol;
-export declare const changeActionSymbol: unique symbol;
+export const inputLayerSymbol = Symbol("Input Layer");
+export const actionLayerSymbol = Symbol("Action Layer");
+export const changeActionSymbol = Symbol("Change Action");
 declare enum Event$1 {
 	REGISTER_INPUT = "antetype.conditions.input.register",
 	REGISTER_METHOD = "antetype.conditions.method.register"
 }
-export interface IInputHandler<T = any> extends Record<string | symbol, unknown> {
+export interface IInputHandler<T = string | number | null | string[] | number[]> extends Record<string | symbol, unknown> {
 	id?: string;
 	[inputLayerSymbol]?: IConditionAwareDef;
 	type: string;
@@ -333,7 +339,7 @@ export interface IInput<G extends IInputHandler = IInputHandler> {
 	description?: string;
 	icon?: string;
 }
-interface IConditionInstruction {
+export interface IConditionInstruction {
 	text: string;
 }
 export interface IChange {
@@ -345,6 +351,7 @@ export interface IAction {
 	[actionLayerSymbol]: IConditionAwareDef;
 	rule: IConditionInstruction;
 	changes: IChange[];
+	name?: string;
 }
 export interface IConditionAwareDef extends IBaseDef {
 	conditions?: {
@@ -354,6 +361,7 @@ export interface IConditionAwareDef extends IBaseDef {
 }
 export interface IMethodArgument extends Record<string, any> {
 	type: string;
+	name: string;
 	value?: any;
 	inputId?: string;
 }
@@ -398,12 +406,17 @@ interface IEventReturn {
 	retrieveInputs: () => Promise<Record<string, IInput>>;
 	retrieveMethods: () => Promise<Record<string, IMethod>>;
 }
+interface IReturnProps {
+	generateActionArguments: () => Record<string, unknown>;
+	canActionResolve: (action: IAction, args: Record<string, unknown> | null) => boolean;
+	resolveArguments: (args: IMethodArgument[]) => unknown[];
+}
 export interface IParams {
 	canvas: HTMLCanvasElement | null;
 	modules: Modules;
-	injected: IInjected;
+	herald: Herald;
 }
-export interface IConditions extends ICrud, IEventReturn {
+export interface IConditions extends ICrud, IEventReturn, IReturnProps {
 	getInputsMap: () => Record<string, IInput>;
 	getMethodsMap: () => Record<string, IMethod>;
 }
@@ -415,9 +428,6 @@ export declare class Conditions implements Module$1 {
 	#private;
 	static inject: Record<string, string>;
 	inject(injections: IInjected): void;
-	/**
-	 * Example of lazy loading the module
-	 */
 	register(event: CustomEvent<ModulesEvent>): Promise<void>;
 	static subscriptions: Subscriptions;
 }

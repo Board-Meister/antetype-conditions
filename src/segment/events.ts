@@ -10,12 +10,12 @@ import {
   RegisterInputEvent, RegisterMethodEvent, SetImageMethod, SetPropertyMethod, SetTextMethod,
   IMultiselectInputHandler, IMethod,
 } from "@src/type.d";
-import { IInjected } from "@src/index";
 import { ICrud } from "@src/segment/crud";
+import type { Herald } from "@boardmeister/herald";
 
 export interface IEventsProps {
   inputsMap: Record<string, IInputHandler>;
-  injected: IInjected;
+  herald: Herald;
   modules: Modules;
   crud: ICrud;
   inputsTypeMap: Record<string, IInput>;
@@ -30,7 +30,7 @@ export interface IEventReturn {
 export default function events(
   {
     modules,
-    injected: { herald },
+    herald,
     crud,
     inputsTypeMap,
     methodsMap,
@@ -69,8 +69,6 @@ export default function events(
   }
 
   const imageToLayer: Record<string, WeakMap<IConditionAwareDef, true>> = {};
-
-
 
   const unregister = herald.batch([
     {
@@ -209,6 +207,7 @@ export default function events(
           type: 'set-image',
           arguments: [
             {
+              name: 'image',
               type: 'image',
             }
           ],
@@ -239,6 +238,7 @@ export default function events(
           type: 'set-text',
           arguments: [
             {
+              name: 'text',
               type: 'text',
               placeholder: 'New text',
             }
@@ -257,10 +257,12 @@ export default function events(
           type: 'set-property',
           arguments: [
             {
+              name: 'path',
               type: 'text',
               placeholder: 'Path to property (path.to.property)',
             },
             {
+              name: 'value',
               type: 'text',
               placeholder: 'New value',
             },

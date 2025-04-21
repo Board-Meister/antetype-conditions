@@ -9,7 +9,7 @@ export enum Event {
   REGISTER_METHOD = 'antetype.conditions.method.register',
 }
 
-export interface IInputHandler<T = any> extends Record<string|symbol, unknown> {
+export interface IInputHandler<T = string|number|null|string[]|number[]> extends Record<string|symbol, unknown> {
   id?: string;
   [inputLayerSymbol]?: IConditionAwareDef;
   type: string;
@@ -65,6 +65,7 @@ export interface IAction {
   [actionLayerSymbol]: IConditionAwareDef;
   rule: IConditionInstruction;
   changes: IChange[];
+  name?: string;
 }
 
 export interface IConditionAwareDef extends IBaseDef {
@@ -76,6 +77,7 @@ export interface IConditionAwareDef extends IBaseDef {
 
 export interface IMethodArgument extends Record<string, any> {
   type: string;
+  name: string;
   value?: any;
   inputId?: string;
 }

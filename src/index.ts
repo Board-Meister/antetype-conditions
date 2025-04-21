@@ -24,9 +24,6 @@ export class Conditions implements Module {
     this.#injected = injections;
   }
 
-  /**
-   * Example of lazy loading the module
-   */
   async register(event: CustomEvent<ModulesEvent>): Promise<void> {
     const { modules, canvas } = event.detail;
     if (!this.#module) {
@@ -36,7 +33,7 @@ export class Conditions implements Module {
     this.#instance = modules.conditions = this.#module({
       canvas,
       modules: modules as Modules,
-      injected: this.#injected!
+      herald: this.#injected!.herald
     });
   }
 

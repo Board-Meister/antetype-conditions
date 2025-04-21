@@ -1,24 +1,24 @@
 import type { Modules } from "@boardmeister/antetype-core"
-import { IInjected } from "@src/index";
 import crud, { ICrud } from "@src/segment/crud";
 import setEvents, { IEventReturn } from "@src/segment/events";
 import { IInput, IInputHandler, IMethod } from "@src/type.d";
-import setConditionHandler from "@src/segment/conditions";
+import setConditionHandler, { type IReturnProps } from "@src/segment/conditions";
+import type { Herald } from "@boardmeister/herald";
 
 export interface IParams {
   canvas: HTMLCanvasElement|null,
   modules: Modules,
-  injected: IInjected,
+  herald: Herald,
 }
 
-export interface IConditions extends ICrud, IEventReturn {
+export interface IConditions extends ICrud, IEventReturn, IReturnProps {
   getInputsMap: () => Record<string, IInput>;
   getMethodsMap: () => Record<string, IMethod>;
 }
 
 export default function ConditionsModule(
   {
-    injected,
+    herald,
     modules,
   }: IParams
 ): IConditions {
@@ -46,14 +46,21 @@ export default function ConditionsModule(
     }
   }
 
-  const eventsProps = setEvents({ inputsMap, injected, modules, inputsTypeMap, methodsMap, crud: crudProps });
-  setConditionHandler({ enableTextConditions: detectCSPRestriction(), inputsMap, injected, modules, crud: crudProps })
+  const eventsProps = setEvents({ inputsMap, herald, modules, inputsTypeMap, methodsMap, crud: crudProps });
+  const conditionProps = setConditionHandler({
+    enableTextConditions: detectCSPRestriction(),
+    inputsMap,
+    herald,
+    modules,
+    crud: crudProps
+  });
 
   return {
     getInputsMap: (): Record<string, IInput> => ({ ...inputsTypeMap }),
     getMethodsMap: (): Record<string, IMethod> => ({ ...methodsMap }),
     ...eventsProps,
     ...crudProps,
+    ...conditionProps,
   };
 }
 

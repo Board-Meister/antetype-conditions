@@ -1,24 +1,31 @@
 import type { Modules, CalcEvent } from "@boardmeister/antetype-core"
+import type { Herald } from "@boardmeister/herald";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
-import { IAction, IInjected } from "@src/index";
+import { IAction } from "@src/index";
 import { IConditionAwareDef, IInputHandler, IMethodArgument } from "@src/type.d";
 import { ICrud } from "@src/segment/crud";
 
 export interface IConditionsProps {
   inputsMap: Record<string, IInputHandler>;
-  injected: IInjected;
+  herald: Herald;
   modules: Modules;
   crud: ICrud;
   enableTextConditions: boolean;
 }
 
+export interface IReturnProps {
+  generateActionArguments: () => Record<string, unknown>;
+  canActionResolve: (action: IAction, args: Record<string, unknown>|null) => boolean;
+  resolveArguments: (args: IMethodArgument[]) => unknown[];
+}
+
 export default function setConditionHandler(
   {
-    injected: { herald },
+    herald,
     crud,
     enableTextConditions,
   }: IConditionsProps
-): void {
+): IReturnProps {
   const actionCache: Record<string, (...args: unknown[]) => boolean> = {};
 
   const resolveArguments = (args: IMethodArgument[]): unknown[] => {
@@ -34,26 +41,22 @@ export default function setConditionHandler(
     return values;
   }
 
-  const canActionResolve = (action: IAction, args: Record<string, unknown>): boolean => {
+  const canActionResolve = (action: IAction, args: Record<string, unknown>|null = null): boolean => {
+    args ??= generateActionArguments();
     const rule = action.rule.text.trim();
+
     // When text conditions are disabled we just skip them
     if (!enableTextConditions || rule.length == 0) {
       return true;
     }
 
-    try {
-      if (!actionCache[rule]) {
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
-        actionCache[rule] = new Function(
-          ...Object.keys(args), 'return !!(' + rule + ')').bind({}
-        ) as (...args: unknown[]) => boolean;
-      }
-      return actionCache[rule](...Object.values(args));
-    } catch {
-      return false;
+    if (!actionCache[rule]) {
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      actionCache[rule] = new Function(
+        ...Object.keys(args), 'return !!(' + rule + ')').bind({}
+      ) as (...args: unknown[]) => boolean;
     }
-
-    return false;
+    return actionCache[rule](...Object.values(args));
   }
 
   const generateActionArguments = (): Record<string, unknown> => {
@@ -88,7 +91,11 @@ export default function setConditionHandler(
           const args = generateActionArguments();
 
           for (const action of element.conditions.actions) {
-            if (!canActionResolve(action, args)) {
+            try {
+              if (!canActionResolve(action, args)) {
+                continue;
+              }
+            } catch {
               continue;
             }
 
@@ -104,4 +111,10 @@ export default function setConditionHandler(
       },
     },
   ]);
+
+  return {
+    canActionResolve,
+    generateActionArguments,
+    resolveArguments,
+  }
 }

@@ -1,7 +1,24 @@
 // ../antetype-core/dist/index.js
-var s = ((t) => (t.INIT = "antetype.init", t.CLOSE = "antetype.close", t.DRAW = "antetype.draw", t.CALC = "antetype.calc", t.RECALC_FINISHED = "antetype.recalc.finished", t.MODULES = "antetype.modules", t.SETTINGS = "antetype.settings.definition", t))(s || {});
+var o = { INIT: "antetype.init", CLOSE: "antetype.close", DRAW: "antetype.draw", CALC: "antetype.calc", RECALC_FINISHED: "antetype.recalc.finished", MODULES: "antetype.modules", SETTINGS: "antetype.settings.definition", TYPE_DEFINITION: "antetype.layer.type.definition" };
+var i = class {
+  #e;
+  #n = null;
+  static inject = { minstrel: "boardmeister/minstrel", herald: "boardmeister/herald" };
+  inject(e) {
+    this.#e = e;
+  }
+  async #t(e, n) {
+    let t = this.#e.minstrel.getResourceUrl(this, "core.js");
+    return this.#n = (await import(t)).default, this.#n({ canvas: n, modules: e, herald: this.#e.herald });
+  }
+  async register(e) {
+    let { modules: n, canvas: t } = e.detail;
+    n.core = await this.#t(n, t);
+  }
+  static subscriptions = { [o.MODULES]: "register" };
+};
 
-// src/type.d.tsx
+// src/type.d.ts
 var inputLayerSymbol = Symbol("Input Layer");
 var actionLayerSymbol = Symbol("Action Layer");
 var changeActionSymbol = Symbol("Change Action");
@@ -11,7 +28,7 @@ var Event = /* @__PURE__ */ ((Event2) => {
   return Event2;
 })(Event || {});
 
-// src/index.tsx
+// src/index.ts
 var Conditions = class {
   #injected;
   #module = null;
@@ -24,9 +41,6 @@ var Conditions = class {
   inject(injections) {
     this.#injected = injections;
   }
-  /**
-   * Example of lazy loading the module
-   */
   async register(event) {
     const { modules, canvas } = event.detail;
     if (!this.#module) {
@@ -36,11 +50,11 @@ var Conditions = class {
     this.#instance = modules.conditions = this.#module({
       canvas,
       modules,
-      injected: this.#injected
+      herald: this.#injected.herald
     });
   }
   static subscriptions = {
-    [s.MODULES]: "register"
+    [o.MODULES]: "register"
   };
 };
 var EnSkeleton = Conditions;
