@@ -159,7 +159,7 @@ export default function events(
               }
 
               for (const option of this.options) {
-                if (value.indexOf(option.value)) {
+                if (-1 !== value.indexOf(option.value)) {
                   option.checked = true;
                 } else {
                   option.checked = false;

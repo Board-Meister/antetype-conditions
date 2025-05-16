@@ -15,7 +15,7 @@ export interface IConditionsProps {
 
 export interface IReturnProps {
   generateActionArguments: () => Record<string, unknown>;
-  canActionResolve: (action: IAction, args: Record<string, unknown>|null) => boolean;
+  canActionResolve: (action: IAction, args?: Record<string, unknown>|null) => boolean;
   resolveArguments: (args: IMethodArgument[]) => unknown[];
 }
 
@@ -42,7 +42,6 @@ export default function setConditionHandler(
   }
 
   const canActionResolve = (action: IAction, args: Record<string, unknown>|null = null): boolean => {
-    args ??= generateActionArguments();
     const rule = action.rule.text.trim();
 
     // When text conditions are disabled we just skip them
@@ -50,11 +49,13 @@ export default function setConditionHandler(
       return true;
     }
 
+    args ??= generateActionArguments();
     if (!actionCache[rule]) {
       // eslint-disable-next-line @typescript-eslint/no-implied-eval
       actionCache[rule] = new Function(
-        ...Object.keys(args), 'return !!(' + rule + ')').bind({}
-      ) as (...args: unknown[]) => boolean;
+        ...Object.keys(args),
+        'return !!(' + rule + ')'
+      ).bind({}) as (...args: unknown[]) => boolean;
     }
     return actionCache[rule](...Object.values(args));
   }
@@ -62,7 +63,7 @@ export default function setConditionHandler(
   const generateActionArguments = (): Record<string, unknown> => {
     const inputs: Record<string, unknown> = {};
     for (const input of crud.getInputs()) {
-      inputs[input.name] = input.value; // @TODO at latter point remove by name selection
+      inputs[input.name] = input.value; // @TODO at later point remove "by name" selection
       inputs[input.id!] = input.value;
     }
 

@@ -28,7 +28,6 @@ export default function ConditionsModule(
   const crudProps = crud({ inputsMap, inputsTypeMap, methodsMap, modules });
 
   const detectCSPRestriction = (): boolean => {
-    // detect possible CSP restriction
     try {
       // eslint-disable-next-line @typescript-eslint/no-implied-eval
       new Function('return 1');

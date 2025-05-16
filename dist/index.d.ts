@@ -77,12 +77,12 @@ declare class Marshal {
 declare type UnknownRecord = Record<symbol | string, unknown>;
 interface ModulesEvent {
 	modules: Record<string, Module$1>;
-	canvas: HTMLCanvasElement | null;
+	canvas: HTMLCanvasElement;
 }
 declare type Module$1 = object;
 interface Modules {
-	[key: string]: Module$1 | undefined;
 	core: ICore;
+	[key: string]: Module$1 | undefined;
 }
 type ITypeDefinitionPrimitive = "boolean" | "string" | "number";
 type TypeDefinition = {
@@ -113,7 +113,7 @@ interface ISettingsDefinitionFieldContainer extends ISettingsDefinitionFieldGene
 	fields: SettingsDefinitionField[][];
 	collapsable?: boolean;
 }
-type ISettingsInputValue = string | number | string[] | number[] | Record<string, any> | Record<string, any>[] | undefined;
+type ISettingsInputValue = string | number | (string | number | Record<string, any>)[] | Record<string, any> | undefined;
 interface ISettingsDefinitionFieldInput extends ISettingsDefinitionFieldGeneric {
 	name: string;
 	value: ISettingsInputValue;
@@ -131,11 +131,6 @@ interface ISettingsDefinition {
 	name: string;
 	tabs: ISettingsDefinitionTab[];
 }
-interface ISettingEvent {
-	settings: ISettingsDefinition[];
-	additional: Record<string, any>;
-}
-type SettingsEvent = CustomEvent<ISettingEvent>;
 declare type XValue = number;
 declare type YValue = XValue;
 interface IStart {
@@ -204,8 +199,6 @@ interface ICore extends Module$1 {
 		markAsLayer: (layer: IBaseDef) => IBaseDef;
 		add: (def: IBaseDef, parent?: IParentDef | null, position?: number | null) => void;
 		addVolatile: (def: IBaseDef, parent?: IParentDef | null, position?: number | null) => void;
-		move: (original: IBaseDef, newStart: IStart) => Promise<void>;
-		resize: (original: IBaseDef, newSize: ISize) => Promise<void>;
 		remove: (def: IBaseDef) => void;
 		removeVolatile: (def: IBaseDef) => void;
 		calcAndUpdateLayer: (original: IBaseDef) => Promise<void>;
@@ -216,6 +209,8 @@ interface ICore extends Module$1 {
 		redraw: (layout?: Layout) => void;
 		recalculate: (parent?: IParentDef, layout?: Layout, currentSession?: symbol | null) => Promise<Layout>;
 		redrawDebounce: (layout?: Layout) => void;
+		move: (original: IBaseDef, newStart: IStart) => Promise<void>;
+		resize: (original: IBaseDef, newSize: ISize) => Promise<void>;
 	};
 	policies: {
 		isLayer: (layer: Record<symbol, unknown>) => boolean;
@@ -226,10 +221,11 @@ interface ICore extends Module$1 {
 	};
 	setting: {
 		set: (name: string, value: unknown) => void;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 		get: <T = unknown>(name: string) => T | null;
 		has: (name: string) => boolean;
-		retrieveSettingsDefinition: (additional?: Record<string, any>) => Promise<ISettingsDefinition[]>;
-		setSettingsDefinition: (e: SettingsEvent) => void;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		retrieve: (additional?: Record<string, any>) => Promise<ISettingsDefinition[]>;
 	};
 }
 type Layout = (IBaseDef | IParentDef)[];
@@ -328,7 +324,7 @@ export interface IMultiselectOption {
 export interface ISelectInputHandler extends IInputHandler<string | null> {
 	options: ISelectOption[];
 }
-export interface IMultiselectInputHandler extends IInputHandler<string[]> {
+export interface IMultiselectInputHandler extends IInputHandler<string[] | null> {
 	options: IMultiselectOption[];
 }
 export type IImageInputHandler = IInputHandler<string | null>;
@@ -343,21 +339,22 @@ export interface IConditionInstruction {
 	text: string;
 }
 export interface IChange {
-	[changeActionSymbol]: IAction;
+	[changeActionSymbol]?: IAction;
 	type: string;
 	arguments: IMethodArgument[];
 }
 export interface IAction {
-	[actionLayerSymbol]: IConditionAwareDef;
+	[actionLayerSymbol]?: IConditionAwareDef;
 	rule: IConditionInstruction;
 	changes: IChange[];
 	name?: string;
 }
+export interface IConditionParams {
+	inputs?: IInputHandler[];
+	actions?: IAction[];
+}
 export interface IConditionAwareDef extends IBaseDef {
-	conditions?: {
-		inputs?: IInputHandler[];
-		actions?: IAction[];
-	};
+	conditions?: IConditionParams;
 }
 export interface IMethodArgument extends Record<string, any> {
 	type: string;
@@ -408,7 +405,7 @@ interface IEventReturn {
 }
 interface IReturnProps {
 	generateActionArguments: () => Record<string, unknown>;
-	canActionResolve: (action: IAction, args: Record<string, unknown> | null) => boolean;
+	canActionResolve: (action: IAction, args?: Record<string, unknown> | null) => boolean;
 	resolveArguments: (args: IMethodArgument[]) => unknown[];
 }
 export interface IParams {

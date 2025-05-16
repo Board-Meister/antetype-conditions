@@ -37,7 +37,7 @@ export interface ISelectInputHandler extends IInputHandler<string|null> {
   options: ISelectOption[];
 }
 
-export interface IMultiselectInputHandler extends IInputHandler<string[]> {
+export interface IMultiselectInputHandler extends IInputHandler<string[]|null> {
   options: IMultiselectOption[];
 }
 
@@ -56,23 +56,25 @@ interface IConditionInstruction {
 }
 
 export interface IChange {
-  [changeActionSymbol]: IAction;
+  [changeActionSymbol]?: IAction;
   type: string;
   arguments: IMethodArgument[];
 }
 
 export interface IAction {
-  [actionLayerSymbol]: IConditionAwareDef;
+  [actionLayerSymbol]?: IConditionAwareDef;
   rule: IConditionInstruction;
   changes: IChange[];
   name?: string;
 }
 
-export interface IConditionAwareDef extends IBaseDef {
-  conditions?: {
+export interface IConditionParams {
     inputs?: IInputHandler[];
     actions?: IAction[];
-  }
+}
+
+export interface IConditionAwareDef extends IBaseDef {
+  conditions?: IConditionParams;
 }
 
 export interface IMethodArgument extends Record<string, any> {

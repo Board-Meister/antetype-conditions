@@ -160,7 +160,7 @@ function crud({
 }
 
 // ../antetype-core/dist/index.js
-var o = { INIT: "antetype.init", CLOSE: "antetype.close", DRAW: "antetype.draw", CALC: "antetype.calc", RECALC_FINISHED: "antetype.recalc.finished", MODULES: "antetype.modules", SETTINGS: "antetype.settings.definition", TYPE_DEFINITION: "antetype.layer.type.definition" };
+var o = { INIT: "antetype.init", CLOSE: "antetype.close", DRAW: "antetype.draw", CALC: "antetype.calc", RECALC_FINISHED: "antetype.recalc.finished", MODULES: "antetype.modules", SETTINGS: "antetype.settings.definition", TYPE_DEFINITION: "antetype.layer.type.definition", FONTS_LOADED: "antetype.font.loaded" };
 var i = class {
   #e;
   #n = null;
@@ -302,7 +302,7 @@ function events({
                 return;
               }
               for (const option of this.options) {
-                if (value.indexOf(option.value)) {
+                if (-1 !== value.indexOf(option.value)) {
                   option.checked = true;
                 } else {
                   option.checked = false;
@@ -453,18 +453,16 @@ function setConditionHandler({
     return values;
   };
   const canActionResolve = (action, args = null) => {
-    args ??= generateActionArguments();
     const rule = action.rule.text.trim();
     if (!enableTextConditions || rule.length == 0) {
       return true;
     }
+    args ??= generateActionArguments();
     if (!actionCache[rule]) {
       actionCache[rule] = new Function(
         ...Object.keys(args),
         "return !!(" + rule + ")"
-      ).bind(
-        {}
-      );
+      ).bind({});
     }
     return actionCache[rule](...Object.values(args));
   };
