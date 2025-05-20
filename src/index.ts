@@ -1,9 +1,9 @@
 import type { IInjectable } from "@boardmeister/marshal"
-import type { Module, ModulesEvent, Modules } from "@boardmeister/antetype-core"
+import type { Module, ModulesEvent } from "@boardmeister/antetype-core"
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import type { Minstrel } from "@boardmeister/minstrel"
 import type { Herald, ISubscriber, Subscriptions } from "@boardmeister/herald"
-import ConditionsModule, { IConditions } from "@src/module";
+import ConditionsModule, { IConditions, type ModulesWithCore } from "@src/module";
 
 export interface IInjected extends Record<string, object> {
   minstrel: Minstrel;
@@ -32,7 +32,7 @@ export class Conditions implements Module {
     }
     this.#instance = modules.conditions = this.#module({
       canvas,
-      modules: modules as Modules,
+      modules: modules as ModulesWithCore,
       herald: this.#injected!.herald
     });
   }

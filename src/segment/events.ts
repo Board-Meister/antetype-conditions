@@ -1,5 +1,5 @@
-import type { Modules, InitEvent } from "@boardmeister/antetype-core"
-import type { ITextDef, IImageDef } from "@boardmeister/antetype-illustrator"
+import type { InitEvent } from "@boardmeister/antetype-core"
+import type { ITextDef, IImageDef, ModulesWithCore } from "@boardmeister/antetype-illustrator"
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import {
   Event, IConditionAwareDef,
@@ -16,7 +16,7 @@ import type { Herald } from "@boardmeister/herald";
 export interface IEventsProps {
   inputsMap: Record<string, IInputHandler>;
   herald: Herald;
-  modules: Modules;
+  modules: ModulesWithCore;
   crud: ICrud;
   inputsTypeMap: Record<string, IInput>;
   methodsMap: Record<string, IMethod>;

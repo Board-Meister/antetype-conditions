@@ -1,13 +1,17 @@
-import type { Modules } from "@boardmeister/antetype-core"
+import type { ICore, Modules } from "@boardmeister/antetype-core"
 import crud, { ICrud } from "@src/segment/crud";
 import setEvents, { IEventReturn } from "@src/segment/events";
 import { IInput, IInputHandler, IMethod } from "@src/type.d";
 import setConditionHandler, { type IReturnProps } from "@src/segment/conditions";
 import type { Herald } from "@boardmeister/herald";
 
+export interface ModulesWithCore extends Modules {
+  core: ICore;
+}
+
 export interface IParams {
   canvas: HTMLCanvasElement|null,
-  modules: Modules,
+  modules: ModulesWithCore,
   herald: Herald,
 }
 

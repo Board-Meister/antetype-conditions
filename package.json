@@ -51,5 +51,12 @@
     "terser": "^5.31.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1"
+  },
+  "dependencies": {
+    "@boardmeister/antetype-core": "^0.0.2",
+    "@boardmeister/antetype-illustrator": "^0.0.2",
+    "@boardmeister/herald": "^0.0.1",
+    "@boardmeister/marshal": "^0.0.1",
+    "@boardmeister/minstrel": "^0.0.1"
   }
 }

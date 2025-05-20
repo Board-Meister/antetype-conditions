@@ -1,5 +1,5 @@
 import type { ICore } from "@boardmeister/antetype-core";
-import Core from "@boardmeister/antetype-core/src/core";
+import Core from "@boardmeister/antetype-core/dist/core";
 import { Herald } from "@boardmeister/herald";
 import ConditionsModule, { Event } from "@src/module";
 import { type IConditions } from "@src/module";

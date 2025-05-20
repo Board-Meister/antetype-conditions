@@ -1,4 +1,4 @@
-// ../antetype-core/dist/index.js
+// node_modules/@boardmeister/antetype-core/dist/index.js
 var o = { INIT: "antetype.init", CLOSE: "antetype.close", DRAW: "antetype.draw", CALC: "antetype.calc", RECALC_FINISHED: "antetype.recalc.finished", MODULES: "antetype.modules", SETTINGS: "antetype.settings.definition", TYPE_DEFINITION: "antetype.layer.type.definition", FONTS_LOADED: "antetype.font.loaded" };
 var i = class {
   #e;
