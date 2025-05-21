@@ -1,6 +1,6 @@
 {
   "name": "@boardmeister/antetype-conditions",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Module for handling fillable inputs and actions based on their values",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "typescript": "./node_modules/.bin/dts-bundle-generator --no-check --export-referenced-types false --project tsconfig.json -o dist/index.d.ts src/index.ts",
-    "link": "npm link @boardmeister/antetype-illustrator @boardmeister/antetype-core @boardmeister/minstrel @boardmeister/herald @boardmeister/marshal",
     "build": "node esbuild.config.mjs && npm run typescript",
     "test": "npx jasmine-browser-runner runSpecs",
     "serve-jasmine": "npx jasmine-browser-runner serve"
@@ -53,10 +52,9 @@
     "typescript-eslint": "^8.0.1"
   },
   "dependencies": {
-    "@boardmeister/antetype-core": "^0.0.2",
+    "@boardmeister/antetype-core": "^0.0.3",
     "@boardmeister/antetype-illustrator": "^0.0.2",
     "@boardmeister/herald": "^0.0.1",
-    "@boardmeister/marshal": "^0.0.1",
-    "@boardmeister/minstrel": "^0.0.1"
+    "@boardmeister/marshal": "^0.0.2"
   }
 }

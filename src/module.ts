@@ -1,8 +1,8 @@
 import type { ICore, Modules } from "@boardmeister/antetype-core"
-import crud, { ICrud } from "@src/segment/crud";
-import setEvents, { IEventReturn } from "@src/segment/events";
-import { IInput, IInputHandler, IMethod } from "@src/type.d";
-import setConditionHandler, { type IReturnProps } from "@src/segment/conditions";
+import crud from "@src/segment/crud";
+import setEvents from "@src/segment/events";
+import { IInput, IInputHandler, IMethod, type IConditions } from "@src/type.d";
+import setConditionHandler from "@src/segment/conditions";
 import type { Herald } from "@boardmeister/herald";
 
 export interface ModulesWithCore extends Modules {
@@ -13,11 +13,6 @@ export interface IParams {
   canvas: HTMLCanvasElement|null,
   modules: ModulesWithCore,
   herald: Herald,
-}
-
-export interface IConditions extends ICrud, IEventReturn, IReturnProps {
-  getInputsMap: () => Record<string, IInput>;
-  getMethodsMap: () => Record<string, IMethod>;
 }
 
 export default function ConditionsModule(

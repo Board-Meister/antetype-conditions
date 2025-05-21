@@ -12,9 +12,10 @@ await esbuild.build({
   entryPoints: [
     ...globSync(resolve(__dirname, 'src/index.ts')),
     ...globSync(resolve(__dirname, 'src/module.ts')),
+    ...globSync(resolve(__dirname, 'src/module.conf.ts')),
   ],
   bundle: true,
-  // minify: true,
+  minify: true,
   format: 'esm',
   outdir: './dist',
   platform: 'browser',
