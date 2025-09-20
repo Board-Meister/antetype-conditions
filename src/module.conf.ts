@@ -1,9 +1,13 @@
 import type { IInjectable } from "@boardmeister/marshal"
 import type { Module, ModulesEvent } from "@boardmeister/antetype-core"
-import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import type { Herald, ISubscriber, Subscriptions } from "@boardmeister/herald"
-import ConditionsModule, { type ModulesWithCore } from "@src/module";
 import type Marshal from "@boardmeister/marshal"
+import type ConditionsModule from "@src/module";
+import type { ModulesWithCore } from "@src/module";
+import { Event as CoreEvent } from "@boardmeister/antetype-core"
+
+export const ID = 'conditions';
+export const VERSION = '0.0.4';
 
 export interface IInjected extends Record<string, object> {
   marshal: Marshal;
@@ -22,17 +26,24 @@ export class Conditions implements Module {
     this.#injected = injections;
   }
 
-  async register(event: CustomEvent<ModulesEvent>): Promise<void> {
-    const { modules, canvas } = event.detail;
-    if (!this.#module) {
-      const module = this.#injected!.marshal.getResourceUrl(this, 'module.js');
-      this.#module = ((await import(module)) as { default: typeof ConditionsModule }).default;
-    }
-    modules.conditions = this.#module({
-      canvas,
-      modules: modules as ModulesWithCore,
-      herald: this.#injected!.herald,
-    });
+  register(event: ModulesEvent): void {
+    const { registration } = event.detail;
+
+    registration[ID] = {
+      load: async () => {
+        if (!this.#module) {
+          const module = this.#injected!.marshal.getResourceUrl(this as Module, 'module.js');
+          this.#module = ((await import(module)) as { default: typeof ConditionsModule }).default;
+        }
+
+        return (modules, canvas) => this.#module!({
+          canvas,
+          modules: modules as ModulesWithCore,
+          herald: this.#injected!.herald,
+        });
+      },
+      version: VERSION,
+    };
   }
 
   static subscriptions: Subscriptions = {

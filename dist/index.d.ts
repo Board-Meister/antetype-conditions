@@ -130,6 +130,8 @@ export interface IConditions extends ICrud, IEventReturn, IReturnProps {
 	getInputsMap: () => Record<string, IInput>;
 	getMethodsMap: () => Record<string, IMethod>;
 }
+export declare const ID = "conditions";
+export declare const VERSION = "0.0.4";
 
 export {
 	ConditionsModule as Conditions,

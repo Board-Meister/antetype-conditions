@@ -1,6 +1,6 @@
 {
   "name": "@boardmeister/antetype-conditions",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Module for handling fillable inputs and actions based on their values",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -52,7 +52,7 @@
     "typescript-eslint": "^8.0.1"
   },
   "dependencies": {
-    "@boardmeister/antetype-core": "^0.0.3",
+    "@boardmeister/antetype-core": "^0.0.5",
     "@boardmeister/antetype-illustrator": "^0.0.2",
     "@boardmeister/herald": "^0.0.1",
     "@boardmeister/marshal": "^0.0.2"
