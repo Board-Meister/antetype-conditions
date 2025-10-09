@@ -199,7 +199,11 @@ export default function events(
           name: 'Hide layer',
           type: 'hide',
           resolve: ({ event }) => {
-            event.detail.element = null;
+            event.detail.element = {
+              type: 'none',
+              start: { x:0,y:0 },
+              size: { w:0,h:0 },
+            };
           }
         }
         methods.setImage = {
