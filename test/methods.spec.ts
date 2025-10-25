@@ -65,9 +65,11 @@ describe('Methods are', () => {
     expect(layer.conditions!.actions![0].changes.length).toBe(1);
 
     expect(core.meta.document.layout.length).toBe(1);
+    expect(core.meta.document.layout[0].type).toBe('testConditions');
     await core.view.recalculate();
     core.view.redraw();
-    expect(core.meta.document.layout.length).toBe(0);
+    expect(core.meta.document.layout.length).toBe(1);
+    expect(core.meta.document.layout[0].type).toBe('none');
   });
 
   it('correctly resolved - text', async () => {

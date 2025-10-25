@@ -3,7 +3,7 @@ import type { Herald } from "@boardmeister/herald";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import { IAction } from "@src/index";
 import { IConditionAwareDef, IInputHandler, IMethodArgument } from "@src/type.d";
-import { ICrud } from "@src/segment/crud";
+import { ICrud } from "@src/module/crud";
 
 export interface IConditionsProps {
   inputsMap: Record<string, IInputHandler>;

@@ -67,6 +67,7 @@ describe('Conditions are', () => {
     core.meta.document.base[0].conditions.actions[0].rule.text = 'true';
     await core.view.recalculate();
     core.view.redraw();
-    expect(core.meta.document.layout.length).withContext('Action is preformed').toBe(0);
+    expect(core.meta.document.layout.length).withContext('Action is preformed').toBe(1);
+    expect(core.meta.document.layout[0].type).withContext('Action is preformed (hide)').toBe('none');
   });
 });

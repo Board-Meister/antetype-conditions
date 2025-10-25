@@ -1,7 +1,7 @@
 import type { CalcEvent, IBaseDef } from "@boardmeister/antetype-core"
-import type { ICrud } from "@src/segment/crud";
-import type { IEventReturn } from "@src/segment/events";
-import type { IReturnProps } from "@src/segment/conditions";
+import type { ICrud } from "@src/module/crud";
+import type { IEventReturn } from "@src/module/events";
+import type { IReturnProps } from "@src/module/conditions";
 
 export const inputLayerSymbol = Symbol('Input Layer');
 export const actionLayerSymbol = Symbol('Action Layer');

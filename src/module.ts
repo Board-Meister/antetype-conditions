@@ -1,8 +1,8 @@
 import type { ICore, Modules } from "@boardmeister/antetype-core"
-import crud from "@src/segment/crud";
-import setEvents from "@src/segment/events";
+import crud from "@src/module/crud";
+import setEvents from "@src/module/events";
 import { IInput, IInputHandler, IMethod, type IConditions } from "@src/type.d";
-import setConditionHandler from "@src/segment/conditions";
+import setConditionHandler from "@src/module/conditions";
 import type { Herald } from "@boardmeister/herald";
 
 export interface ModulesWithCore extends Modules {

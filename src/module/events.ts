@@ -10,7 +10,7 @@ import {
   RegisterInputEvent, RegisterMethodEvent, SetImageMethod, SetPropertyMethod, SetTextMethod,
   IMultiselectInputHandler, IMethod,
 } from "@src/type.d";
-import { ICrud } from "@src/segment/crud";
+import { ICrud } from "@src/module/crud";
 import type { Herald } from "@boardmeister/herald";
 
 export interface IEventsProps {
