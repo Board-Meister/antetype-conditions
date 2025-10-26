@@ -1,9 +1,10 @@
-import type { Modules, CalcEvent } from "@boardmeister/antetype-core"
+import type { CalcEvent } from "@boardmeister/antetype-core"
 import type { Herald } from "@boardmeister/herald";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import { IAction } from "@src/index";
 import { IConditionAwareDef, IInputHandler, IMethodArgument } from "@src/type.d";
 import { ICrud } from "@src/module/crud";
+import type { Modules } from "@src/module";
 
 export interface IConditionsProps {
   inputsMap: Record<string, IInputHandler>;

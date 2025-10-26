@@ -3,7 +3,7 @@ import type { Module, ModulesEvent } from "@boardmeister/antetype-core"
 import type { Herald, ISubscriber, Subscriptions } from "@boardmeister/herald"
 import type Marshal from "@boardmeister/marshal"
 import type ConditionsModule from "@src/module";
-import type { ModulesWithCore } from "@src/module";
+import type { Modules } from "@src/module";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 
 export const ID = 'conditions';
@@ -38,7 +38,7 @@ export class Conditions implements Module {
 
         return (modules, canvas) => this.#module!({
           canvas,
-          modules: modules as ModulesWithCore,
+          modules: modules as Modules,
           herald: this.#injected!.herald,
         });
       },

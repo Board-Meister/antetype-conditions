@@ -1,17 +1,23 @@
-import type { ICore, Modules } from "@boardmeister/antetype-core"
+import type { ICore, Modules as ModulesRoot } from "@boardmeister/antetype-core"
 import crud from "@src/module/crud";
 import setEvents from "@src/module/events";
 import { IInput, IInputHandler, IMethod, type IConditions } from "@src/type.d";
 import setConditionHandler from "@src/module/conditions";
 import type { Herald } from "@boardmeister/herald";
+import type { IIllustrator } from "@boardmeister/antetype-illustrator";
+import type { IWorkspace } from "@boardmeister/antetype-workspace";
+import bulk from "@src/module/bulk";
 
-export interface ModulesWithCore extends Modules {
+export interface Modules extends ModulesRoot {
   core: ICore;
+  illustrator: IIllustrator;
+  workspace: IWorkspace;
+  conditions: IConditions;
 }
 
 export interface IParams {
   canvas: HTMLCanvasElement|null,
-  modules: ModulesWithCore,
+  modules: Modules,
   herald: Herald,
 }
 
@@ -25,6 +31,7 @@ export default function ConditionsModule(
   const inputsTypeMap: Record<string, IInput> = {};
   const methodsMap: Record<string, IMethod> = {};
   const crudProps = crud({ inputsMap, inputsTypeMap, methodsMap, modules });
+  const bulkProps = bulk({ modules, herald });
 
   const detectCSPRestriction = (): boolean => {
     try {
@@ -59,6 +66,7 @@ export default function ConditionsModule(
     ...eventsProps,
     ...crudProps,
     ...conditionProps,
+    ...bulkProps,
   };
 }
 

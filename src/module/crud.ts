@@ -1,5 +1,5 @@
 import type { IParentDef } from "@boardmeister/antetype-core"
-import type { ModulesWithCore } from "@src/module";
+import type { Modules } from "@src/module";
 import {
   actionLayerSymbol,
   changeActionSymbol,
@@ -33,7 +33,7 @@ export interface ICrudProps {
   inputsMap: Record<string, IInputHandler>;
   inputsTypeMap: Record<string, IInput>;
   methodsMap: Record<string, IMethod>;
-  modules: ModulesWithCore;
+  modules: Modules;
 }
 
 export default function crud(

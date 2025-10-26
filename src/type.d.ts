@@ -2,6 +2,7 @@ import type { CalcEvent, IBaseDef } from "@boardmeister/antetype-core"
 import type { ICrud } from "@src/module/crud";
 import type { IEventReturn } from "@src/module/events";
 import type { IReturnProps } from "@src/module/conditions";
+import type { IBulkReturn } from "@src/module/bulk";
 
 export const inputLayerSymbol = Symbol('Input Layer');
 export const actionLayerSymbol = Symbol('Action Layer');
@@ -115,7 +116,7 @@ export interface IRegisterMethodEvent {
 
 export type RegisterMethodEvent = CustomEvent<IRegisterMethodEvent>;
 
-export interface IConditions extends ICrud, IEventReturn, IReturnProps {
+export interface IConditions extends ICrud, IEventReturn, IReturnProps, IBulkReturn {
   getInputsMap: () => Record<string, IInput>;
   getMethodsMap: () => Record<string, IMethod>;
 }

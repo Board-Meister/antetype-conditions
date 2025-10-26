@@ -54,6 +54,7 @@
   "dependencies": {
     "@boardmeister/antetype-core": "^0.0.5",
     "@boardmeister/antetype-illustrator": "^0.0.2",
+    "@boardmeister/antetype-workspace": "^0.0.4",
     "@boardmeister/herald": "^0.0.1",
     "@boardmeister/marshal": "^0.0.2"
   }
