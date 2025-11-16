@@ -36,8 +36,7 @@ export class Conditions implements Module {
           this.#module = ((await import(module)) as { default: typeof ConditionsModule }).default;
         }
 
-        return (modules, canvas) => this.#module!({
-          canvas,
+        return modules => this.#module!({
           modules: modules as Modules,
           herald: this.#injected!.herald,
         });

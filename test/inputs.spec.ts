@@ -14,8 +14,9 @@ describe('Inputs are', () => {
   const herald = new Herald();
   const canvas = document.createElement('canvas');
   beforeEach(() => {
-    core = Core({ herald, canvas }) as ICore;
-    condition = ConditionsModule({ canvas, modules: { core }, herald });
+    core = Core({ herald, }) as ICore;
+    condition = ConditionsModule({ modules: { core }, herald });
+    core.meta.setCanvas(canvas);
   });
 
   afterEach(async () => {

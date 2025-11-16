@@ -16,7 +16,6 @@ export interface Modules extends ModulesRoot {
 }
 
 export interface IParams {
-  canvas: HTMLCanvasElement|null,
   modules: Modules,
   herald: Herald,
 }

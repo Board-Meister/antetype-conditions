@@ -14,7 +14,8 @@ describe('Conditions are', () => {
   const canvas = document.createElement('canvas');
   beforeEach(() => {
     core = Core({ herald, canvas }) as ICore;
-    condition = ConditionsModule({ canvas, modules: { core }, herald });
+    condition = ConditionsModule({ modules: { core }, herald });
+    core.meta.setCanvas(canvas);
   });
 
   afterEach(async () => {
