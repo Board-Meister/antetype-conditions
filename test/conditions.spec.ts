@@ -12,18 +12,18 @@ describe('Conditions are', () => {
   let condition: IConditions, core: ICore;
   const herald = new Herald();
   const canvas = document.createElement('canvas');
-  beforeEach(() => {
+  beforeEach(async () => {
     core = Core({ herald, canvas }) as ICore;
     condition = ConditionsModule({ modules: { core }, herald });
-    core.meta.setCanvas(canvas);
+    await core.meta.setCanvas(canvas);
   });
 
   afterEach(async () => {
-    await close(herald);
+    await close(canvas, herald);
   })
 
   it('resolved properly', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions'),
     ]);
     await awaitEvent(herald, Event.REGISTER_METHOD);
@@ -47,7 +47,7 @@ describe('Conditions are', () => {
   it('are handled on draw', async () => {
     await awaitEvent(herald, Event.REGISTER_METHOD);
     await awaitEvent(herald, Event.REGISTER_INPUT);
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions', {
         actions: [
           {

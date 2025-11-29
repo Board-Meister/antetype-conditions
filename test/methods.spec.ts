@@ -13,18 +13,18 @@ describe('Methods are', () => {
   let condition: IConditions, core: ICore;
   const herald = new Herald();
   const canvas = document.createElement('canvas');
-  beforeEach(() => {
+  beforeEach(async () => {
     core = Core({ herald }) as ICore;
     condition = ConditionsModule({ modules: { core }, herald });
-    core.meta.setCanvas(canvas);
+    await core.meta.setCanvas(canvas);
   });
 
   afterEach(async () => {
-    await close(herald);
+    await close(canvas, herald);
   })
 
   it('registered and assigned properly', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions'),
     ]);
     await awaitEvent(herald, Event.REGISTER_METHOD);
@@ -54,7 +54,7 @@ describe('Methods are', () => {
   });
 
   it('correctly resolved - hide', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions'),
     ]);
 
@@ -74,7 +74,7 @@ describe('Methods are', () => {
   });
 
   it('correctly resolved - text', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       Object.assign(generateRandomConditionLayer('text'), {
         text: {
           value: 'test'
@@ -95,7 +95,7 @@ describe('Methods are', () => {
   });
 
   it('correctly resolved - image', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       Object.assign(generateRandomConditionLayer('image'), {
         image: {
           src: 'image'
@@ -116,7 +116,7 @@ describe('Methods are', () => {
   });
 
   it('correctly resolved - property', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       Object.assign(generateRandomConditionLayer('conditionTest'), {
         foo: {
           bar: {

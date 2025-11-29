@@ -13,18 +13,18 @@ describe('Inputs are', () => {
   let condition: IConditions, core: ICore;
   const herald = new Herald();
   const canvas = document.createElement('canvas');
-  beforeEach(() => {
+  beforeEach(async () => {
     core = Core({ herald, }) as ICore;
     condition = ConditionsModule({ modules: { core }, herald });
-    core.meta.setCanvas(canvas);
+    await core.meta.setCanvas(canvas);
   });
 
   afterEach(async () => {
-    await close(herald);
+    await close(canvas, herald);
   })
 
   it('registered and assigned properly, and save data as expected', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions'),
     ]);
     await awaitEvent(herald, Event.REGISTER_INPUT);
@@ -142,7 +142,7 @@ describe('Inputs are', () => {
   });
 
   it('regenerated properly', async () => {
-    await initialize(herald, [
+    await initialize(canvas, herald, [
       generateRandomConditionLayer('testConditions', {
         inputs: [
           {

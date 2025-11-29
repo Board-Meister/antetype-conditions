@@ -50,14 +50,19 @@ export default function ConditionsModule(
     }
   }
 
-  const eventsProps = setEvents({ inputsMap, herald, modules, inputsTypeMap, methodsMap, crud: crudProps });
-  const conditionProps = setConditionHandler({
+  const { props: conditionProps, events: conditionEvents } = setConditionHandler({
     enableTextConditions: detectCSPRestriction(),
     inputsMap,
     herald,
     modules,
     crud: crudProps
   });
+  const eventsProps = setEvents({
+    inputsMap, herald, modules, inputsTypeMap, methodsMap, crud: crudProps,
+    additional: [conditionEvents],
+  });
+
+  console.log(crudProps);
 
   return {
     getInputsMap: (): Record<string, IInput> => ({ ...inputsTypeMap }),

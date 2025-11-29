@@ -152,6 +152,7 @@ export default function crud(
     for(let i=0; i < inputs.length; i++) {
       let input = inputs[i];
       if (input[inputLayerSymbol]) {
+        inputsMap[input.id!] = input;
         continue;
       }
 
@@ -164,11 +165,9 @@ export default function crud(
         inputs[i] = input = regenerated;
       }
 
-      if (!input.id) {
-        input.id = modules.core.meta.generateId();
-      }
-      inputsMap[input.id] = input;
-      input[inputLayerSymbol] = layer;
+      input.id ??= modules.core.meta.generateId();
+      inputsMap[input.id] ??= input;
+      input[inputLayerSymbol] ??= modules.core.clone.getOriginal(layer);
     }
 
     for (const child of (layer as IParentDef).layout ?? []) {

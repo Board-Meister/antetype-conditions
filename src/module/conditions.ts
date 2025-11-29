@@ -1,5 +1,5 @@
-import type { CalcEvent } from "@boardmeister/antetype-core"
-import type { Herald } from "@boardmeister/herald";
+import type { CalcEvent, Canvas } from "@boardmeister/antetype-core"
+import type { Herald, IEventRegistration } from "@boardmeister/herald";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import { IAction } from "@src/index";
 import { IConditionAwareDef, IInputHandler, IMethodArgument } from "@src/type.d";
@@ -20,13 +20,17 @@ export interface IReturnProps {
   resolveArguments: (args: IMethodArgument[]) => unknown[];
 }
 
+export interface IReturn {
+  props: IReturnProps;
+  events: (anchor: Canvas|null) => IEventRegistration[];
+}
+
 export default function setConditionHandler(
   {
-    herald,
     crud,
     enableTextConditions,
   }: IConditionsProps
-): IReturnProps {
+): IReturn {
   const actionCache: Record<string, (...args: unknown[]) => boolean> = {};
 
   const resolveArguments = (args: IMethodArgument[]): unknown[] => {
@@ -73,50 +77,45 @@ export default function setConditionHandler(
     }
   }
 
-  const unregister = herald.batch([
-    {
-      event: CoreEvent.CLOSE,
-      subscription: () => {
-        unregister();
-      },
+  return {
+    props: {
+      canActionResolve,
+      generateActionArguments,
+      resolveArguments,
     },
-    {
-      event: CoreEvent.CALC,
-      subscription: {
-        method: (e: CustomEvent<CalcEvent>) => {
-          const element: IConditionAwareDef|null = e.detail.element;
-          if (!element?.conditions?.actions || element.conditions.actions.length == 0) {
-            return;
-          }
+    events: (anchor: Canvas|null = null) => [
+      {
+        event: CoreEvent.CALC,
+        subscription: {
+          method: (e: CustomEvent<CalcEvent>) => {
+            const element: IConditionAwareDef|null = e.detail.element;
+            if (!element?.conditions?.actions || element.conditions.actions.length == 0) {
+              return;
+            }
 
-          // @TODO if too heavy think of a way to set it at the start of calc and clear at the end
-          const args = generateActionArguments();
-
-          for (const action of element.conditions.actions) {
-            try {
-              if (!canActionResolve(action, args)) {
+            // @TODO if too heavy think of a way to set it at the start of calc and clear at the end
+            const args = generateActionArguments();
+            for (const action of element.conditions.actions) {
+              try {
+                if (!canActionResolve(action, args)) {
+                  continue;
+                }
+              } catch {
                 continue;
               }
-            } catch {
-              continue;
-            }
 
-            for (const change of action.changes) {
-              const method = crud.getMethod(change.type);
-              if (!method) continue;
+              for (const change of action.changes) {
+                const method = crud.getMethod(change.type);
+                if (!method) continue;
 
-              method.resolve({ layer: element, event: e }, ...resolveArguments(change.arguments))
+                method.resolve({ layer: element, event: e }, ...resolveArguments(change.arguments))
+              }
             }
-          }
+          },
+          priority: -250,
+          anchor,
         },
-        priority: -250,
       },
-    },
-  ]);
-
-  return {
-    canActionResolve,
-    generateActionArguments,
-    resolveArguments,
+    ]
   }
 }

@@ -1,5 +1,5 @@
 import { IConditionAwareDef } from '@src/type.d';
-import type { IBaseDef, InitEvent, ISettings, Layout } from "@boardmeister/antetype-core";
+import type { Canvas, IBaseDef, InitEvent, ISettings, Layout } from "@boardmeister/antetype-core";
 import { Event as CoreEvent } from "@boardmeister/antetype-core";
 import type { Herald } from "@boardmeister/herald";
 import type { IConditionParams } from "@src/type";
@@ -28,7 +28,12 @@ export const generateRandomConditionLayer = (
   return layer;
 };
 
-export const initialize = (herald: Herald, layout: Layout|null = null, settings: ISettings = {}): Promise<void> => {
+export const initialize = (
+  origin: Canvas,
+  herald: Herald,
+  layout: Layout|null = null,
+  settings: ISettings = {},
+): Promise<void> => {
   return herald.dispatch(new CustomEvent<InitEvent>(CoreEvent.INIT, {
     detail: {
       base: layout ?? [
@@ -38,12 +43,12 @@ export const initialize = (herald: Herald, layout: Layout|null = null, settings:
         generateRandomConditionLayer('clear4'),
       ],
       settings,
-    }
-  }));
+    },
+  }), { origin });
 }
 
-export const close = (herald: Herald): Promise<void> => {
-  return herald.dispatch(new CustomEvent<CloseEvent>(CoreEvent.CLOSE));
+export const close = (origin: Canvas, herald: Herald): Promise<void> => {
+  return herald.dispatch(new CustomEvent<CloseEvent>(CoreEvent.CLOSE), { origin });
 }
 
 export const awaitEvent = (herald: Herald, event: string, timeout = 100): Promise<void> => {

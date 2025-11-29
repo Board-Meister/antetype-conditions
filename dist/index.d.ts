@@ -2,13 +2,14 @@
 
 import { IIllustrator } from '@boardmeister/antetype-illustrator';
 import { IExportSettings, IWorkspace } from '@boardmeister/antetype-workspace';
-import { Herald } from '@boardmeister/herald';
+import Marshal from '@boardmeister/marshal';
+import { Module } from '@boardmeister/marshal';
 
 declare type UnknownRecord = Record<symbol | string, unknown>;
-declare type Module = object;
+declare type Module$1 = object;
 interface Modules {
 	core?: ICore;
-	[key: string]: Module | undefined;
+	[key: string]: Module$1 | undefined;
 }
 type ITypeDefinitionPrimitive = "boolean" | "string" | "number";
 type TypeDefinition = {
@@ -111,13 +112,13 @@ interface IFont {
 	url: string;
 	name: string;
 }
-interface ICore extends Module {
+interface ICore extends Module$1 {
 	meta: {
 		document: IDocumentDef;
 		generateId: () => string;
 		layerDefinitions: () => ITypeDefinitionMap;
 		getCanvas: () => Canvas | null;
-		setCanvas: (newCanvas: null | Canvas) => void;
+		setCanvas: (newCanvas: null | Canvas) => Promise<void>;
 	};
 	clone: {
 		definitions: (data: IBaseDef) => Promise<IBaseDef>;
@@ -138,6 +139,7 @@ interface ICore extends Module {
 		redraw: (layout?: Layout) => void;
 		recalculate: (parent?: IParentDef, layout?: Layout, currentSession?: symbol | null) => Promise<Layout>;
 		redrawDebounce: (layout?: Layout) => void;
+		recalculateDebounce: (parent?: IParentDef, layout?: Layout, currentSession?: symbol | null) => Promise<Layout>;
 		move: (original: IBaseDef, newStart: IStart) => Promise<void>;
 		resize: (original: IBaseDef, newSize: ISize) => Promise<void>;
 	};
@@ -159,6 +161,58 @@ interface ICore extends Module {
 	};
 }
 type Layout = (IBaseDef | IParentDef)[];
+type AmbiguousSubscription = string | OptionalSubscription | OptionalSubscription[] | EventHandler;
+type EventHandler = (event: CustomEvent) => Promise<any> | any;
+type Anchor = Node | object | symbol | null;
+interface OptionalSubscription {
+	method: string | EventHandler;
+	priority?: number;
+	constraint?: string | Module | null;
+	anchor?: Anchor;
+}
+interface IEventRegistration {
+	event: string;
+	subscription: AmbiguousSubscription;
+	constraint?: string | Module | null;
+	sort?: boolean;
+	symbol?: symbol | null;
+	anchor?: Anchor;
+}
+interface IListen {
+	event: string;
+	subscription: AmbiguousSubscription;
+	anchor?: Anchor;
+	symbol?: symbol | null;
+	sort?: boolean;
+	constraint?: string | Module | null;
+}
+type LocalizedEventDirection = "up" | "down" | "both";
+interface IEventSettings {
+	origin?: Anchor;
+	direction?: LocalizedEventDirection;
+}
+declare class Herald {
+	#private;
+	constructor(marshal?: Marshal | null);
+	dispatch(event: CustomEvent, settings?: IEventSettings): Promise<void>;
+	dispatchSync(event: CustomEvent, settings?: IEventSettings): void;
+	batch(events: IEventRegistration[]): () => void;
+	/**
+	 * Wrapper method for `register`
+	 * Makes is easier when you want to specify just anchor or just symbol. Thanks to that we don't have to write:
+	 *
+	 * `register('event', [], null, null, null, Node);`
+	 *
+	 * instead we can:
+	 *
+	 * `listen({event: 'event', subscription: [], anchor: Node});`
+	 *
+	 * still, using registration can result in a smaller size, so it's not completely useless.
+	 */
+	listen({ event, subscription, constraint, sort, symbol, anchor, }: IListen): () => void;
+	register(event: string, subscription: AmbiguousSubscription, constraint?: string | Module | null, sort?: boolean, symbol?: symbol | null, anchor?: Anchor): () => void;
+	unregister(event: string, symbol: symbol): void;
+}
 interface Modules$1 extends Modules {
 	core: ICore;
 	illustrator: IIllustrator;
