@@ -62,8 +62,6 @@ export default function ConditionsModule(
     additional: [conditionEvents],
   });
 
-  console.log(crudProps);
-
   return {
     getInputsMap: (): Record<string, IInput> => ({ ...inputsTypeMap }),
     getMethodsMap: (): Record<string, IMethod> => ({ ...methodsMap }),
