@@ -95,15 +95,16 @@ export default function events(
       {
         event: CoreEvent.INIT,
         subscription: {
-          method: async (e: CustomEvent<InitEvent>) => {
+          method: async (e: InitEvent) => {
             await Promise.all([
               retrieveInputs(),
               retrieveMethods(),
             ]);
-            const { base } = e.detail;
+            const { document } = e.detail;
+            const base = document?.base ?? [];
             for (const layer of base) {
-              crud.registerNewInputs(layer);
-              crud.registerNewActions(layer);
+              crud.registerNewInputs(layer as IConditionAwareDef);
+              crud.registerNewActions(layer as IConditionAwareDef);
             }
           },
           priority: -10,
