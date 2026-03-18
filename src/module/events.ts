@@ -1,4 +1,4 @@
-import type { Canvas, CanvasChangeEvent, InitEvent } from "@boardmeister/antetype-core"
+import type { InitEvent } from "@boardmeister/antetype-core"
 import type { ITextDef, IImageDef } from "@boardmeister/antetype-illustrator"
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import {
@@ -11,17 +11,16 @@ import {
   IMultiselectInputHandler, IMethod,
 } from "@src/type.d";
 import { ICrud } from "@src/module/crud";
-import type { Herald, IEventRegistration } from "@boardmeister/herald";
+import type { IEventRegistration } from "@boardmeister/herald";
 import type { Modules } from "@src/module";
 
 export interface IEventsProps {
   inputsMap: Record<string, IInputHandler>;
-  herald: Herald;
   modules: Modules;
   crud: ICrud;
   inputsTypeMap: Record<string, IInput>;
   methodsMap: Record<string, IMethod>;
-  additional: [(anchor: Canvas|null) => IEventRegistration[]]
+  additional: [() => IEventRegistration[]]
 }
 
 export interface IEventReturn {
@@ -32,7 +31,6 @@ export interface IEventReturn {
 export default function events(
   {
     modules,
-    herald,
     crud,
     inputsTypeMap,
     methodsMap,
@@ -46,7 +44,7 @@ export default function events(
         inputs,
       }
     });
-    await herald.dispatch(event, { origin: modules.core.meta.getCanvas() });
+    await modules.core.event.dispatch(event);
     for (const key in inputsTypeMap) delete inputsTypeMap[key];
     for (const type in event.detail.inputs) {
       const input = event.detail.inputs[type];
@@ -62,7 +60,7 @@ export default function events(
         methods,
       }
     });
-    await herald.dispatch(event, { origin: modules.core.meta.getCanvas() });
+    await modules.core.event.dispatch(event);
     for (const key in methodsMap) delete methodsMap[key];
     for (const type in event.detail.methods) {
       const method = event.detail.methods[type];
@@ -73,25 +71,9 @@ export default function events(
 
   const imageToLayer: Record<string, WeakMap<IConditionAwareDef, true>> = {};
 
-  const register = (anchor: Canvas|null = null): void => {
-    anchor ??= modules.core.meta.getCanvas();
+  const register = (): void => {
 
-    const unregister = herald.batch([
-      {
-        event: CoreEvent.CLOSE,
-        subscription: () => {
-          unregister();
-        },
-        anchor,
-      },
-      {
-        event: CoreEvent.CANVAS_CHANGE,
-        subscription: ({ detail: { current } }: CanvasChangeEvent) => {
-          unregister();
-          register(current);
-        },
-        anchor,
-      },
+    modules.core.event.batch([
       {
         event: CoreEvent.INIT,
         subscription: {
@@ -108,7 +90,6 @@ export default function events(
             }
           },
           priority: -10,
-          anchor,
         },
       },
       {
@@ -207,7 +188,6 @@ export default function events(
             })
           } as IInput<IImageInputHandler>
         },
-        anchor,
       },
       {
         event: Event.REGISTER_METHOD,
@@ -319,9 +299,8 @@ export default function events(
             }
           } as SetPropertyMethod;
         },
-        anchor,
       },
-      ...(additional.reduce<IEventRegistration[]>((cum, curr) => [...cum, ...curr(anchor)], []))
+      ...(additional.reduce<IEventRegistration[]>((cum, curr) => [...cum, ...curr()], []))
     ]);
   }
 

@@ -2,7 +2,6 @@
 
 import { IIllustrator } from '@boardmeister/antetype-illustrator';
 import { IExportSettings, IWorkspace } from '@boardmeister/antetype-workspace';
-import Marshal from '@boardmeister/marshal';
 import { Module } from '@boardmeister/marshal';
 
 declare type UnknownRecord = Record<symbol | string, unknown>;
@@ -244,58 +243,6 @@ interface ICore extends Module$1 {
 	};
 }
 type Layout = (IBaseDef | IParentDef)[];
-type AmbiguousSubscription$1 = string | OptionalSubscription$1 | OptionalSubscription$1[] | EventHandler$1;
-type EventHandler$1 = (event: CustomEvent) => Promise<any> | any;
-type Anchor$1 = Node | object | symbol | null;
-interface OptionalSubscription$1 {
-	method: string | EventHandler$1;
-	priority?: number;
-	constraint?: string | Module | null;
-	anchor?: Anchor$1;
-}
-interface IEventRegistration$1 {
-	event: string;
-	subscription: AmbiguousSubscription$1;
-	constraint?: string | Module | null;
-	sort?: boolean;
-	symbol?: symbol | null;
-	anchor?: Anchor$1;
-}
-interface IListen {
-	event: string;
-	subscription: AmbiguousSubscription$1;
-	anchor?: Anchor$1;
-	symbol?: symbol | null;
-	sort?: boolean;
-	constraint?: string | Module | null;
-}
-type LocalizedEventDirection$1 = "up" | "down" | "both";
-interface IEventSettings$1 {
-	origin?: Anchor$1;
-	direction?: LocalizedEventDirection$1;
-}
-declare class Herald {
-	#private;
-	constructor(marshal?: Marshal | null);
-	dispatch(event: CustomEvent, settings?: IEventSettings$1): Promise<void>;
-	dispatchSync(event: CustomEvent, settings?: IEventSettings$1): void;
-	batch(events: IEventRegistration$1[]): () => void;
-	/**
-	 * Wrapper method for `register`
-	 * Makes is easier when you want to specify just anchor or just symbol. Thanks to that we don't have to write:
-	 *
-	 * `register('event', [], null, null, null, Node);`
-	 *
-	 * instead we can:
-	 *
-	 * `listen({event: 'event', subscription: [], anchor: Node});`
-	 *
-	 * still, using registration can result in a smaller size, so it's not completely useless.
-	 */
-	listen({ event, subscription, constraint, sort, symbol, anchor, }: IListen): () => void;
-	register(event: string, subscription: AmbiguousSubscription$1, constraint?: string | Module | null, sort?: boolean, symbol?: symbol | null, anchor?: Anchor$1): () => void;
-	unregister(event: string, symbol: symbol): void;
-}
 interface Modules$1 extends Modules {
 	core: ICore;
 	illustrator: IIllustrator;
@@ -304,9 +251,8 @@ interface Modules$1 extends Modules {
 }
 interface IParams {
 	modules: Modules$1;
-	herald: Herald;
 }
-declare function ConditionsModule({ herald, modules, }: IParams): IConditions;
+declare function ConditionsModule({ modules, }: IParams): IConditions;
 interface ICrud {
 	addInput: (layer: IConditionAwareDef, input: IInput) => IInputHandler;
 	removeInput: (handler: IInputHandler) => void;

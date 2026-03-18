@@ -3,7 +3,6 @@ import crud from "@src/module/crud";
 import setEvents from "@src/module/events";
 import { IInput, IInputHandler, IMethod, type IConditions } from "@src/type.d";
 import setConditionHandler from "@src/module/conditions";
-import type { Herald } from "@boardmeister/herald";
 import type { IIllustrator } from "@boardmeister/antetype-illustrator";
 import type { IWorkspace } from "@boardmeister/antetype-workspace";
 import bulk from "@src/module/bulk";
@@ -17,12 +16,10 @@ export interface Modules extends ModulesRoot {
 
 export interface IParams {
   modules: Modules,
-  herald: Herald,
 }
 
 export default function ConditionsModule(
   {
-    herald,
     modules,
   }: IParams
 ): IConditions {
@@ -30,7 +27,7 @@ export default function ConditionsModule(
   const inputsTypeMap: Record<string, IInput> = {};
   const methodsMap: Record<string, IMethod> = {};
   const crudProps = crud({ inputsMap, inputsTypeMap, methodsMap, modules });
-  const bulkProps = bulk({ modules, herald });
+  const bulkProps = bulk({ modules });
 
   const detectCSPRestriction = (): boolean => {
     try {
@@ -53,12 +50,11 @@ export default function ConditionsModule(
   const { props: conditionProps, events: conditionEvents } = setConditionHandler({
     enableTextConditions: detectCSPRestriction(),
     inputsMap,
-    herald,
     modules,
     crud: crudProps
   });
   const eventsProps = setEvents({
-    inputsMap, herald, modules, inputsTypeMap, methodsMap, crud: crudProps,
+    inputsMap, modules, inputsTypeMap, methodsMap, crud: crudProps,
     additional: [conditionEvents],
   });
 

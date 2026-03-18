@@ -38,7 +38,6 @@ export class Conditions implements Module {
 
         return modules => this.#module!({
           modules: modules as Modules,
-          herald: this.#injected!.herald,
         });
       },
       version: VERSION,

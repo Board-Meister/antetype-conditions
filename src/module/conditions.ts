@@ -1,5 +1,5 @@
-import type { CalcEvent, Canvas } from "@boardmeister/antetype-core"
-import type { Herald, IEventRegistration } from "@boardmeister/herald";
+import type { CalcEvent } from "@boardmeister/antetype-core"
+import type { IEventRegistration } from "@boardmeister/herald";
 import { Event as CoreEvent } from "@boardmeister/antetype-core"
 import { IAction } from "@src/index";
 import { IConditionAwareDef, IInputHandler, IMethodArgument } from "@src/type.d";
@@ -8,7 +8,6 @@ import type { Modules } from "@src/module";
 
 export interface IConditionsProps {
   inputsMap: Record<string, IInputHandler>;
-  herald: Herald;
   modules: Modules;
   crud: ICrud;
   enableTextConditions: boolean;
@@ -22,7 +21,7 @@ export interface IReturnProps {
 
 export interface IReturn {
   props: IReturnProps;
-  events: (anchor: Canvas|null) => IEventRegistration[];
+  events: () => IEventRegistration[];
 }
 
 export default function setConditionHandler(
@@ -83,7 +82,7 @@ export default function setConditionHandler(
       generateActionArguments,
       resolveArguments,
     },
-    events: (anchor: Canvas|null = null) => [
+    events: () => [
       {
         event: CoreEvent.CALC,
         subscription: {
@@ -113,7 +112,6 @@ export default function setConditionHandler(
             }
           },
           priority: -250,
-          anchor,
         },
       },
     ]

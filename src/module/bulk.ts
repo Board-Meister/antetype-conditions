@@ -1,10 +1,8 @@
 import type { IExportSettings } from "@boardmeister/antetype-workspace";
-import type { Herald } from "@boardmeister/herald";
 import type { IInputHandler, Modules } from "@src/module";
 
 export interface IBulkProps {
   modules: Modules;
-  herald: Herald;
 }
 
 export interface IBulkReturn {
