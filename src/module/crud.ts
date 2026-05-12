@@ -70,7 +70,7 @@ export default function crud(
     const change = {
       [changeActionSymbol]: action,
       type: method.type,
-      arguments: [...method.arguments ?? []],
+      arguments: [...method.arguments ?? []].map(argument => ({ ...argument })),
     };
     action.changes.push(change);
 
